@@ -18,7 +18,7 @@ class MyGUI:
 
         self.winWidth = 640
         self.winHeight = 480
-        self.title = "HDZero Programmer V0.0.0"
+        self.title = "HDZero Programmer v0.0.1"
 
         self.init_main_window()
         self.init_vtx_frame()
@@ -45,7 +45,7 @@ class MyGUI:
             self._tabCtrl, self.winWidth, self.winHeight - 280)
 
     def init_hybrid_viewer_vrx_frame(self):
-        self._hybrid_view_vrx_frame = frame_hybrid_viewer_vrx(
+        self._hybrid_viewer_vrx_frame = frame_hybrid_viewer_vrx(
             self._tabCtrl, self.winWidth, self.winHeight - 280)
 
     def init_event_vrx_frame(self):

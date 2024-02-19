@@ -1,4 +1,5 @@
 import tkinter as tk
+from frame_programmer import frame_programmer
 
 
 class frame_event_vrx:
@@ -6,7 +7,7 @@ class frame_event_vrx:
         self._parent = parent
         
         # main frame
-        self._frame = tk.Frame(parent, bg="yellow")
+        self._frame = tk.Frame(parent)
         parent.add(self._frame, text="Event VRX")
         
         # top frame
@@ -14,8 +15,8 @@ class frame_event_vrx:
         self._top_frame.grid(row=0, column=0, sticky="nsew")
         
         # bottom frame
-        self._bottom_frame = tk.Frame(self._frame, bg="gray")
-        self._bottom_frame.grid(row=1, column=0, sticky="nsew")
+        self._bottom_frame = frame_programmer(self._frame)
+        self._bottom_frame.frame().grid(row=1, column=0, sticky="nsew")
 
         # weight
         self._frame.grid_rowconfigure(0, weight=7)
