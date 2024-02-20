@@ -9,6 +9,7 @@ from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 
 from download import * 
+from parse_file import *
 
 
 class MyGUI:
@@ -64,6 +65,8 @@ class MyGUI:
     def refresh(self):
         if my_download.status == 0:
             print("parse file")
+            my_parse.parse_vtx_releases()
+            my_parse.parse_vtx_common()
             my_download.status = 1
         self._main_window.after(100, self.refresh)
 
