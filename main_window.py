@@ -65,8 +65,8 @@ class MyGUI:
     def refresh(self):
         if my_download.status == 0:
             print("parse file")
-            my_parse.parse_vtx_releases()
             my_parse.parse_vtx_common()
+            my_parse.parse_vtx_releases()
             my_download.status = 1
         self._main_window.after(100, self.refresh)
 
