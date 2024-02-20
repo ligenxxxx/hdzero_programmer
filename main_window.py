@@ -68,6 +68,10 @@ class MyGUI:
             my_parse.parse_vtx_common()
             my_parse.parse_vtx_releases()
             my_download.status = 1
+            self._vtx_frame.target_combobox_update_value(list(my_parse.vtx_info.keys()))
+            self._vtx_frame.target_combobox_set_default()
+            self._vtx_frame.target_combobox_enable()
+
         self._main_window.after(100, self.refresh)
 
 def on_closing():

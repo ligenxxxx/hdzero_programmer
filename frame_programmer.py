@@ -35,16 +35,16 @@ class frame_programmer:
     def load_online_combobox_set_default(self):
         self.load_online_firmware_combobox.set("Load Online Fiwmare")
 
-    def load_online_combobox_update_values(self, new_online_list):
-        self.online_list = new_online_list
+    def load_online_combobox_update_values(self, new_values):
+        self.online_list = new_values
         self.load_online_firmware_combobox.configure(values=self.online_list)
 
     def select_local_file(self):
+        self.load_online_combobox_set_default()
         filetypes = (("Bin files", "*.bin"), ("All files", "*.*"))
         self.local_file_path = filedialog.askopenfilename(
             initialdir=".", title="select a firmware", filetypes=filetypes)
         if self.local_file_path:
             print("Selected file:", self.local_file_path)
-            self.load_online_combobox_set_default()
         else:
             print("No file selected")

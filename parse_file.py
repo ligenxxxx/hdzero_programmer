@@ -27,9 +27,8 @@ class parse:
                         start = 1
                     elif lines[i] == "/* define VTX ID end */\n":
                         start = 0
-            a = 1
         except:
-            a = 1
+            print()
             print("Cant't find common")
 
     def parse_vtx_releases(self):
