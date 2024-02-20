@@ -3,7 +3,7 @@ from tkinter import ttk
 
 
 from frame_vtx import frame_vtx
-from frame_hybrid_viewer_vrx import frame_hybrid_viewer_vrx
+from frame_hybrid_viewer import frame_hybrid_viewer
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 
@@ -26,11 +26,11 @@ class MyGUI:
         self._tabCtrl = ttk.Notebook(self._main_window)
         self.init_main_window()
         self.init_vtx_frame()
-        self.init_hybrid_viewer_vrx_frame()
+        self.init_hybrid_viewer_frame()
         self.init_event_vrx_frame()
         self._tabCtrl.select(self._vtx_frame.frame())
         self._tabCtrl.grid(row=0, column=0, sticky="nsew")
-        
+
         self.init_programmer()
         self._programmer_frame.frame().grid(row=1, column=0, sticky="nsew")
 
@@ -47,19 +47,17 @@ class MyGUI:
         self._main_window.resizable(False, False)
 
     def init_vtx_frame(self):
-        self._vtx_frame = frame_vtx(
-            self._tabCtrl, self.winWidth, self.winHeight - 280)
+        self._vtx_frame = frame_vtx(self._tabCtrl)
 
-    def init_hybrid_viewer_vrx_frame(self):
-        self._hybrid_viewer_vrx_frame = frame_hybrid_viewer_vrx(
-            self._tabCtrl, self.winWidth, self.winHeight - 280)
+    def init_hybrid_viewer_frame(self):
+        self._hybrid_viewer_frame = frame_hybrid_viewer(self._tabCtrl)
 
     def init_event_vrx_frame(self):
-        self._event_vrx_frame = frame_event_vrx(
-            self._tabCtrl, self.winWidth, self.winHeight - 280)
+        self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
 
     def init_programmer(self):
         self._programmer_frame = frame_programmer(self._main_window)
+
 
 def ui_thread_proc():
     root = tk.Tk()
