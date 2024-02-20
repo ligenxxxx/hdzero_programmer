@@ -1,3 +1,5 @@
 __pycache__
 build
 dist
+vtx_common
+vtx_releases
