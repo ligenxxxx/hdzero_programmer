@@ -19,8 +19,8 @@ class MyGUI:
         self.title = "HDZero Programmer v0.0.1"
 
         self._main_window = init_window_name
-        self._main_window.grid_rowconfigure(0, weight=8)
-        self._main_window.grid_rowconfigure(1, weight=2)
+        self._main_window.grid_rowconfigure(0, weight=7)
+        self._main_window.grid_rowconfigure(1, weight=3)
         self._main_window.grid_columnconfigure(0, weight=1)
 
         self._tabCtrl = ttk.Notebook(self._main_window)
