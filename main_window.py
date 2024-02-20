@@ -1,11 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
+import sys
 
 
 from frame_vtx import frame_vtx
 from frame_hybrid_viewer import frame_hybrid_viewer
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
+
+from download import * 
 
 
 class MyGUI:
@@ -58,9 +61,20 @@ class MyGUI:
     def init_programmer(self):
         self._programmer_frame = frame_programmer(self._main_window)
 
+    def refresh(self):
+        if my_download.status == 0:
+            print("parse file")
+            my_download.status = 1
+        self._main_window.after(100, self.refresh)
+
+def on_closing():
+    my_download.status = 255
+    sys.exit()
 
 def ui_thread_proc():
     root = tk.Tk()
 
     my_gui = MyGUI(root)
+    my_gui.refresh()
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     my_gui._main_window.mainloop()

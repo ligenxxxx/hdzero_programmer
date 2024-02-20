@@ -2,16 +2,14 @@ import requests
 import sys
 import time
 
+
 class download:
     def __init__(self):
         self.status = -1
-        self.download_file("https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "vtx_releases")
-        self.download_file("https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "vtx_common")
-        self.status = 0
-        
-        self.url=""
-        self.save_path=""
-    
+
+        self.url = ""
+        self.save_path = ""
+
     def download_file(self, url, save_path):
         print(f"Downloading {url}")
         response = requests.get(url)
@@ -25,17 +23,23 @@ class download:
             return 0
 
 
+my_download = download()
+
 
 def download_thread_proc():
-    my_download = download()
-    
+    global my_download
+
+    my_download.download_file(
+        "https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "vtx_releases")
+    my_download.download_file(
+        "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "vtx_common")
+    my_download.status = 0
+
     while True:
         if my_download.status == -1:
             if my_download.download_file(my_download.url, my_download.save_path):
                 my_download.status = 0
         elif my_download.status == 255:
             sys.exit()
-        
+
         time.sleep(0.01)
-            
-            
