@@ -5,7 +5,7 @@ from tkinter import ttk
 class frame_vtx:
     def __init__(self, parent):
         self._parent = parent
-        self._frame = tk.Frame(parent, bg="red")
+        self._frame = tk.Frame(parent)
         parent.add(self._frame, text="VTX")
 
         self.target_list = []
@@ -31,10 +31,10 @@ class frame_vtx:
         self.target_combobox.set("Choose a VTX")
 
     def target_combobox_disable(self):
-        self.target_combobox.configure(state = "disabled")
+        self.target_combobox.configure(state="disabled")
 
     def target_combobox_enable(self):
-        self.target_combobox.configure(state = "readonly")
-    
+        self.target_combobox.configure(state="readonly")
+
     def target_combobox_update_value(self, new_values):
-        self.target_combobox.configure(values = new_values)
+        self.target_combobox.configure(values=new_values)

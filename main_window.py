@@ -8,19 +8,18 @@ from frame_hybrid_viewer import frame_hybrid_viewer
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 
-from download import * 
+from download import *
 from parse_file import *
 
 
 class MyGUI:
-    vtx_frame = None
-    hybrid_view_vrx_frame = None
-    event_vrx_frame = None
 
     def __init__(self, init_window_name):
         self.winWidth = 640
         self.winHeight = 280
         self.title = "HDZero Programmer v0.0.1"
+
+        self._programmer_frame = None
 
         self._main_window = init_window_name
         self._main_window.grid_rowconfigure(0, weight=7)
@@ -34,6 +33,7 @@ class MyGUI:
         self.init_event_vrx_frame()
         self._tabCtrl.select(self._vtx_frame.frame())
         self._tabCtrl.grid(row=0, column=0, sticky="nsew")
+        self._tabCtrl.bind("<<NotebookTabChanged>>", self.on_tab_changed)
 
         self.init_programmer()
         self._programmer_frame.frame().grid(row=1, column=0, sticky="nsew")
@@ -50,8 +50,13 @@ class MyGUI:
                                    (self.winWidth, self.winHeight, x, y))
         self._main_window.resizable(False, False)
 
+    def init_programmer(self):
+        self._programmer_frame = frame_programmer(self._main_window)
+
     def init_vtx_frame(self):
         self._vtx_frame = frame_vtx(self._tabCtrl)
+        self._vtx_frame.target_combobox.bind(
+            "<<ComboboxSelected>>", self.on_select_vtx_target)
 
     def init_hybrid_viewer_frame(self):
         self._hybrid_viewer_frame = frame_hybrid_viewer(self._tabCtrl)
@@ -59,8 +64,12 @@ class MyGUI:
     def init_event_vrx_frame(self):
         self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
 
-    def init_programmer(self):
-        self._programmer_frame = frame_programmer(self._main_window)
+    def on_select_vtx_target(self, event):
+        selected_target = self._vtx_frame.target_combobox.get()
+        print("Selected target:", selected_target)
+        version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
+        self._programmer_frame.load_online_combobox_update_values(version_list)
+        self._programmer_frame.load_online_combobox_set_default()
 
     def refresh(self):
         if my_download.status == 0:
@@ -68,17 +77,32 @@ class MyGUI:
             my_parse.parse_vtx_common()
             my_parse.parse_vtx_releases()
             my_download.status = 1
-            self._vtx_frame.target_combobox_update_value(list(my_parse.vtx_info.keys()))
+            self._vtx_frame.target_combobox_update_value(
+                list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
 
         self._main_window.after(100, self.refresh)
 
+    def on_tab_changed(self, event):
+        selected_tab = self._tabCtrl.index(self._tabCtrl.select())
+        print("Selected tab:", selected_tab)
+        self._programmer_frame.load_online_combobox_update_values("")
+        self._programmer_frame.load_online_combobox_set_default()
+        if selected_tab == 0:
+            self._vtx_frame.target_combobox_set_default()
+
+
 def on_closing():
     my_download.status = 255
     sys.exit()
 
+
+global my_gui
+
+
 def ui_thread_proc():
+    global my_gui
     root = tk.Tk()
 
     my_gui = MyGUI(root)

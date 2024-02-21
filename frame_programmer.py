@@ -15,7 +15,7 @@ class frame_programmer:
         self._frame.grid_columnconfigure(1, weight=1)
         self._frame.grid_columnconfigure(2, weight=1)
 
-        self.online_list = ["v0.1.0", "v0.2.0", "v0.3.0"]
+        self.online_list = []
         self.load_online_firmware_combobox = ttk.Combobox(
             self._frame, values=self.online_list, state="readonly")
         self.load_online_firmware_combobox.grid(
