@@ -17,6 +17,8 @@ class frame_programmer:
 
         self.online_list = []
         self.mode = 0  # 0/1 : url/local path
+        self.local_file_path = ""
+        self.url = ""
 
         self.version_combobox = ttk.Combobox(
             self._frame, values=self.online_list, state="readonly")
@@ -31,20 +33,21 @@ class frame_programmer:
         self.local_fw_button.grid(row=1, column=1, padx=5, pady=5)
         self.local_fw_button_disable()
 
-        button3 = tk.Button(self._frame, text="Update")
-        button3.grid(row=1, column=2, padx=5, pady=5)
+        self.update_button = tk.Button(self._frame, text="Update")
+        self.update_button.grid(row=1, column=2, padx=5, pady=5)
+        self.update_button_disable()
 
     def frame(self):
         return self._frame
 
     def version_combobox_set_default(self):
         self.version_combobox.set("Load Online Fiwmare")
-    
+
     def version_combobox_disable(self):
-        self.version_combobox["state"]="disabled"
-        
+        self.version_combobox["state"] = "disabled"
+
     def version_combobox_enable(self):
-        self.version_combobox["state"]="readonly"
+        self.version_combobox["state"] = "readonly"
 
     def version_combobox_update_values(self, new_values):
         self.online_list = new_values
@@ -52,7 +55,7 @@ class frame_programmer:
 
     def local_fw_button_disable(self):
         self.local_fw_button.config(state="disabled")
-        
+
     def local_fw_button_enable(self):
         self.local_fw_button.config(state="normal")
 
@@ -66,3 +69,9 @@ class frame_programmer:
             print("Fw:", self.local_file_path)
         else:
             print("No file selected")
+
+    def update_button_disable(self):
+        self.update_button["state"] = "disabled"
+
+    def update_button_enable(self):
+        self.update_button["state"] = "normal"

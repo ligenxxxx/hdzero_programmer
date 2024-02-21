@@ -55,6 +55,7 @@ class MyGUI:
         self._programmer_frame = frame_programmer(self._main_window)
         self._programmer_frame.version_combobox.bind(
             "<<ComboboxSelected>>",  self.on_select_version)
+        self._programmer_frame.update_button["command"] = self.on_update
 
     def init_vtx_frame(self):
         self._vtx_frame = frame_vtx(self._tabCtrl)
@@ -73,6 +74,8 @@ class MyGUI:
         version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
         self._programmer_frame.version_combobox_update_values(version_list)
         self._programmer_frame.version_combobox_set_default()
+        self._programmer_frame.version_combobox_enable()
+        self._programmer_frame.local_fw_button_enable()
 
     def on_select_version(self, event):
         selected_version = self._programmer_frame.version_combobox.get()
@@ -80,15 +83,24 @@ class MyGUI:
         self._programmer_frame.mode = 0
 
         if self.current_selected_tab() == 0:
-            print("FW:", my_parse.vtx_info[self._vtx_frame.target_combobox.get(
-            )][self._programmer_frame.version_combobox.get()])
+            self._programmer_frame.update_button_enable()
+            self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.target_combobox.get(
+            )][self._programmer_frame.version_combobox.get()]
+            print("FW:", self._programmer_frame.url)
+
+    def on_update(self):
+        print("opening ch341")
+        # my_ch341.status = 1
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
         self._programmer_frame.version_combobox_update_values("")
         self._programmer_frame.version_combobox_set_default()
+        self._programmer_frame.update_button_disable()
         if self.current_selected_tab() == 0:
             self._vtx_frame.target_combobox_set_default()
+            self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.local_fw_button_disable()
 
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
@@ -103,9 +115,15 @@ class MyGUI:
                 list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
-            self._programmer_frame.version_combobox_enable()
-            self._programmer_frame.local_fw_button_enable()
-
+        elif my_download.status == 3:
+            print("FW is downloaded")
+            
+        # if my_ch341.status == 2: # ch341 is opened
+        #     if self._programmer_frame.mode == 0:
+        #         my_download.url = self._programmer_frame.url
+        #         my_download.save_path = "FW"
+        #         my_download.status = 2
+            
         self._main_window.after(100, self.refresh)
 
 

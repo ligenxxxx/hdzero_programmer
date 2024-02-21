@@ -36,9 +36,9 @@ def download_thread_proc():
     my_download.status = 0
 
     while True:
-        if my_download.status == -1:
+        if my_download.status == 2:
             if my_download.download_file(my_download.url, my_download.save_path):
-                my_download.status = 0
+                my_download.status = 3
         elif my_download.status == 255:
             sys.exit()
 
