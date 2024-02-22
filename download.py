@@ -5,7 +5,7 @@ import time
 
 class download:
     def __init__(self):
-        self.status = -1
+        self.status = -2
 
         self.url = ""
         self.save_path = ""
@@ -33,12 +33,12 @@ def download_thread_proc():
         "https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "vtx_releases")
     my_download.download_file(
         "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "vtx_common")
-    my_download.status = 0
+    my_download.status = -1
 
     while True:
-        if my_download.status == 2:
+        if my_download.status == 1:
             if my_download.download_file(my_download.url, my_download.save_path):
-                my_download.status = 3
+                my_download.status = 2
         elif my_download.status == 255:
             sys.exit()
 

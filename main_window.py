@@ -8,6 +8,8 @@ from frame_hybrid_viewer import frame_hybrid_viewer
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 
+from ch341 import my_ch341
+
 from download import *
 from parse_file import *
 
@@ -89,8 +91,11 @@ class MyGUI:
             print("FW:", self._programmer_frame.url)
 
     def on_update(self):
-        print("opening ch341")
-        # my_ch341.status = 1
+        self._programmer_frame.version_combobox_disable()
+        self._programmer_frame.local_fw_button_disable()
+        self._programmer_frame.update_button_disable()
+        print("connecting vtx")
+        my_ch341.status = 1  # to connect vtx
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -106,24 +111,55 @@ class MyGUI:
         return self._tabCtrl.index(self._tabCtrl.select())
 
     def refresh(self):
-        if my_download.status == 0:
+        '''
+        - update vtx
+        -   press update button
+        -   connect vtx
+        -   wait until vtx is connected
+        -   download fw if use online fw
+        -   wait until download is done if use online fw
+        -   write vtx id & fw to flash
+        -   wait until write done
+        '''
+        if my_download.status == -1:
             print("parse file")
             my_parse.parse_vtx_common()
             my_parse.parse_vtx_releases()
-            my_download.status = 1
+            my_download.status = 0
             self._vtx_frame.target_combobox_update_value(
                 list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
-        elif my_download.status == 3:
-            print("FW is downloaded")
-            
-        # if my_ch341.status == 2: # ch341 is opened
-        #     if self._programmer_frame.mode == 0:
-        #         my_download.url = self._programmer_frame.url
-        #         my_download.save_path = "FW"
-        #         my_download.status = 2
-            
+        elif my_download.status == 2:
+            my_download.status = 0
+            selected_target = self._vtx_frame.target_combobox.get()
+            my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
+            my_ch341.fw_path = my_download.save_path
+            my_ch341.status = 3
+            print("FW is downloaded, to update vtx")
+
+        if my_ch341.status == 2:  # vtx is connected
+            print("vtx found")
+            my_ch341.status = 0
+
+            if self._programmer_frame.mode == 0:
+                my_download.url = self._programmer_frame.url
+                my_download.save_path = "FW"
+                my_download.status = 1  # download url
+            else:
+                selected_target = self._vtx_frame.target_combobox.get()
+                my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
+                my_ch341.fw_path = self._programmer_frame.local_file_path
+                my_ch341.status = 3
+                print("To update vtx")
+
+        elif my_ch341.status == 4:  # update done
+            self._programmer_frame.version_combobox_enable()
+            self._programmer_frame.local_fw_button_enable()
+            self._programmer_frame.update_button_enable()
+            my_ch341.status = 0
+            print("update done")
+
         self._main_window.after(100, self.refresh)
 
 
