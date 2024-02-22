@@ -7,6 +7,7 @@ from frame_vtx import frame_vtx
 from frame_hybrid_viewer import frame_hybrid_viewer
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
+from frame_statusbar import frame_statusbar
 
 from ch341 import my_ch341
 
@@ -24,13 +25,17 @@ class MyGUI:
         self._programmer_frame = None
 
         self._main_window = init_window_name
-        self._main_window.grid_rowconfigure(0, weight=7)
-        self._main_window.grid_rowconfigure(1, weight=3)
+        self._main_window.grid_rowconfigure(0, weight=8)
+        self._main_window.grid_rowconfigure(1, weight=2)
+        self._main_window.grid_rowconfigure(2, weight=1)
         self._main_window.grid_columnconfigure(0, weight=1)
 
         self.init_tab()
         self.init_programmer()
         self._programmer_frame.frame().grid(row=1, column=0, sticky="nsew")
+        
+        self.init_statusbar()
+        self._statusbar_frame.frame().grid(row=2, column=0, sticky="nsew")
 
     def init_main_window(self):
         screenWidth = self._main_window.winfo_screenwidth()
@@ -69,6 +74,9 @@ class MyGUI:
 
     def init_event_vrx_frame(self):
         self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
+        
+    def init_statusbar(self):
+        self._statusbar_frame = frame_statusbar(self._main_window)
 
     def on_select_vtx_target(self, event):
         selected_target = self._vtx_frame.target_combobox.get()
@@ -130,6 +138,7 @@ class MyGUI:
                 list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
+            self._statusbar_frame.status_label_set_text(" ")
         elif my_download.status == 2:
             my_download.status = 0
             selected_target = self._vtx_frame.target_combobox.get()
@@ -165,6 +174,7 @@ class MyGUI:
 
 def on_closing():
     my_download.status = 255
+    my_ch341.status = 255
     sys.exit()
 
 

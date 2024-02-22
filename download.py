@@ -16,9 +16,13 @@ class download:
         if response.status_code == 200:
             with open(save_path, "wb") as file:
                 file.write(response.content)
+            if self.status == 255:
+                sys.exit()
             print(f"File {save_path} downloaded successfully.")
             return 1
         else:
+            if self.status == 255:
+                sys.exit()
             print("Failed to download file.")
             return 0
 
