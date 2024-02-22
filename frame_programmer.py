@@ -29,7 +29,7 @@ class frame_programmer:
         self.version_combobox_disable()
 
         self.local_fw_button = tk.Button(
-            self._frame, text="Load Local Firmware", command=self.select_local_file)
+            self._frame, text="Load Local Firmware")
         self.local_fw_button.grid(row=1, column=1, padx=5, pady=5)
         self.local_fw_button_disable()
 
@@ -62,13 +62,14 @@ class frame_programmer:
     def select_local_file(self):
         self.version_combobox_set_default()
         filetypes = (("Bin files", "*.bin"), ("All files", "*.*"))
-        self.local_file_path = filedialog.askopenfilename(
-            initialdir=".", title="select a firmware", filetypes=filetypes)
+        try:
+            self.local_file_path = filedialog.askopenfilename(
+                initialdir=".", title="select a firmware", filetypes=filetypes)
+        except:
+            a = 1
+
         if self.local_file_path:
             self.mode = 1
-            print("Fw:", self.local_file_path)
-        else:
-            print("No file selected")
 
     def update_button_disable(self):
         self.update_button["state"] = "disabled"

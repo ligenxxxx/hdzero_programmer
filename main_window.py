@@ -1,6 +1,8 @@
+import sys
+import os
+
 import tkinter as tk
 from tkinter import ttk
-import sys
 
 
 from frame_vtx import frame_vtx
@@ -33,7 +35,7 @@ class MyGUI:
         self.init_tab()
         self.init_programmer()
         self._programmer_frame.frame().grid(row=1, column=0, sticky="nsew")
-        
+
         self.init_statusbar()
         self._statusbar_frame.frame().grid(row=2, column=0, sticky="nsew")
 
@@ -62,6 +64,7 @@ class MyGUI:
         self._programmer_frame = frame_programmer(self._main_window)
         self._programmer_frame.version_combobox.bind(
             "<<ComboboxSelected>>",  self.on_select_version)
+        self._programmer_frame.local_fw_button["command"] = self.on_load_local_firmware
         self._programmer_frame.update_button["command"] = self.on_update
 
     def init_vtx_frame(self):
@@ -74,7 +77,7 @@ class MyGUI:
 
     def init_event_vrx_frame(self):
         self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
-        
+
     def init_statusbar(self):
         self._statusbar_frame = frame_statusbar(self._main_window)
 
@@ -96,14 +99,29 @@ class MyGUI:
             self._programmer_frame.update_button_enable()
             self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.target_combobox.get(
             )][self._programmer_frame.version_combobox.get()]
-            print("FW:", self._programmer_frame.url)
+
+        self._statusbar_frame.status_label_set_text("FW: Online")
+
+    def on_load_local_firmware(self):
+        self._programmer_frame.select_local_file()
+        fw_size = os.path.getsize(self._programmer_frame.local_file_path)
+
+        if self.current_selected_tab() == 0:
+            if fw_size == 0 or fw_size >= 65536:
+                self._statusbar_frame.status_label_set_text(
+                    "FW: Warning Firmware Size")
+            elif self._programmer_frame.mode == 1:
+                self._statusbar_frame.status_label_set_text("FW: Local")
+                self._programmer_frame.update_button_enable()
 
     def on_update(self):
         self._programmer_frame.version_combobox_disable()
         self._programmer_frame.local_fw_button_disable()
         self._programmer_frame.update_button_disable()
-        print("connecting vtx")
+        self._vtx_frame.target_combobox_disable()
         my_ch341.status = 1  # to connect vtx
+        self._statusbar_frame.status_label_set_text("Connecting VTX ...")
+        self._statusbar_frame.progress_bar_set_value(1)
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -120,7 +138,7 @@ class MyGUI:
 
     def refresh(self):
         '''
-        - update vtx
+        1. update vtx
         -   press update button
         -   connect vtx
         -   wait until vtx is connected
@@ -128,9 +146,12 @@ class MyGUI:
         -   wait until download is done if use online fw
         -   write vtx id & fw to flash
         -   wait until write done
+        2. update hybrid view
+        -
+        -
+        3. update event vrx
         '''
         if my_download.status == -1:
-            print("parse file")
             my_parse.parse_vtx_common()
             my_parse.parse_vtx_releases()
             my_download.status = 0
@@ -144,30 +165,36 @@ class MyGUI:
             selected_target = self._vtx_frame.target_combobox.get()
             my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
             my_ch341.fw_path = my_download.save_path
+            my_ch341.written_len = 0
             my_ch341.status = 3
-            print("FW is downloaded, to update vtx")
+            self._statusbar_frame.status_label_set_text("Updating VTX ...")
 
         if my_ch341.status == 2:  # vtx is connected
-            print("vtx found")
             my_ch341.status = 0
 
             if self._programmer_frame.mode == 0:
                 my_download.url = self._programmer_frame.url
                 my_download.save_path = "FW"
                 my_download.status = 1  # download url
+                self._statusbar_frame.status_label_set_text(
+                    "Download Firmware ...")
             else:
                 selected_target = self._vtx_frame.target_combobox.get()
                 my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
                 my_ch341.fw_path = self._programmer_frame.local_file_path
                 my_ch341.status = 3
-                print("To update vtx")
+        elif my_ch341.status == 3:  # refresh progress bar
+            value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
+            self._statusbar_frame.progress_bar_set_value(value)
 
         elif my_ch341.status == 4:  # update done
+            self._statusbar_frame.progress_bar_set_value(100)
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_enable()
+            self._vtx_frame.target_combobox_enable()
             my_ch341.status = 0
-            print("update done")
+            self._statusbar_frame.status_label_set_text("Update VTX Done")
 
         self._main_window.after(100, self.refresh)
 

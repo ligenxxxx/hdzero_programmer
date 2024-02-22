@@ -18,7 +18,6 @@ class download:
                 file.write(response.content)
             if self.status == 255:
                 sys.exit()
-            print(f"File {save_path} downloaded successfully.")
             return 1
         else:
             if self.status == 255:

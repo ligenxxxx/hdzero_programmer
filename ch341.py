@@ -10,11 +10,14 @@ class ch341_class(object):
     def __init__(self):
         self.dll = None
         self.target = -1
-        self.status = 0 # idle
+        self.status = 0  # idle
         self.dll_name = "CH341DLL.DLL"
 
         self.target_id = 0
         self.fw_path = ""
+        
+        self.written_len = 0
+        self.to_write_len = 100
 
         self.iolength = 6
         self.iobuffer = create_string_buffer(65544)
@@ -81,7 +84,7 @@ class ch341_class(object):
         self.set_stream(0)
         self.stream_spi4()
         self.set_stream(1)
-        
+
     def flash_erase_section(self, addr):
         self.iobuffer[0] = 0x20
         self.iobuffer[1] = (addr >> 16) & 0x1f
@@ -92,7 +95,6 @@ class ch341_class(object):
         self.set_stream(0)
         self.stream_spi4()
         self.set_stream(1)
-        
 
     def flash_write_disable(self):
         self.iobuffer[0] = 0x04
@@ -177,13 +179,16 @@ class ch341_class(object):
         file = open(self.fw_path, "rb")
         fw = file.read()
         page_number = (size + (1 << 8) - 1) >> 8
-        
+
         for page in range(page_number):
             base_address = page << 8
             self.flash_write_enable()
             self.flash_write_page(base_address, 256, fw[base_address:])
             self.flash_write_disable()
             self.flash_wait_busy()
+            
+            my_ch341.written_len += 256
+
 
 my_ch341 = ch341_class()
 
@@ -193,16 +198,19 @@ def ch341_thread_proc():
     while True:
         if my_ch341.status == 255:
             sys.exit()
-        if my_ch341.status == 1: # connect vtx
+        if my_ch341.status == 1:  # connect vtx
             while True:
                 if my_ch341.connect_vtx() == 1:
                     my_ch341.status = 2
                     break
                 else:
                     time.sleep(0.1)
-        elif my_ch341.status == 3: # update vtx
+        elif my_ch341.status == 3:  # update vtx
+            my_ch341.written_len = 0
+            my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
             my_ch341.flash_erase_vtx()
             my_ch341.flash_write_target_id()
             my_ch341.flash_write_fw()
             my_ch341.status = 4
+
         time.sleep(0.01)
