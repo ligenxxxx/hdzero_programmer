@@ -187,12 +187,12 @@ class MyGUI:
             value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
             self._statusbar_frame.progress_bar_set_value(value)
 
-        elif my_ch341.status == 4:  # update done
+        elif my_ch341.status == 4:  # vtx update done
             self._statusbar_frame.progress_bar_set_value(100)
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_enable()
             self._vtx_frame.target_combobox_enable()
+            self._programmer_frame.update_button_disable()
             my_ch341.status = 0
             self._statusbar_frame.status_label_set_text("Update VTX Done")
 
