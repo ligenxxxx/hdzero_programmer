@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 
-class frame_vtx:
+class frame_vtx():
     def __init__(self, parent):
         self._parent = parent
         self._frame = tk.Frame(parent)

@@ -5,7 +5,7 @@ from tkinter import ttk
 class frame_statusbar:
     def __init__(self, parent):
         self._parent = parent
-        self._frame = tk.Frame(parent, bg="red")
+        self._frame = tk.Frame(parent)
 
         self._frame.grid_columnconfigure(0, weight=1)
         self._frame.grid_columnconfigure(1, weight=0)
@@ -35,4 +35,3 @@ class frame_statusbar:
 
     def progress_bar_set_value(self, value):
         self.bar["value"] = value
-        print(value)

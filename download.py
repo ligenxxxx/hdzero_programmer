@@ -1,8 +1,6 @@
 import requests
 import sys
 import time
-
-
 class download:
     def __init__(self):
         self.status = -2
@@ -27,7 +25,6 @@ class download:
 
 
 my_download = download()
-
 
 def download_thread_proc():
     global my_download

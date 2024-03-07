@@ -3,7 +3,35 @@ import time
 import sys
 import os
 from ctypes import create_string_buffer
+import constants
+from frame_hybrid_view import frame_hybrid_viewer
+import tkinter as tk
+from tkinter import ttk
+import global_var
+from ctypes import *
 
+class firmware_data(object):
+    
+    def __init__(self):
+        
+        self.fw_5680_size = 0
+        self.fw_5680_buf = create_string_buffer(constants.FW_5680SIZE)
+        self.fw_fpga_size = 0
+        self.fw_fpga_buf = create_string_buffer(constants.FW_FPGASIZE)
+        self.fw_8339_size = 0
+        self.fw_8339_buf = create_string_buffer(constants.FW_8339SIZE)
+        
+    def parse_hybridview_fw(self, fw_path):
+        with open(fw_path, "rb") as file:
+            file.seek(2)
+            self.fw_5680_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_fpga_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_8339_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_5680_buf = file.read(self.fw_5680_size)
+            self.fw_fpga_buf = file.read(self.fw_fpga_size)
+            self.fw_8339_buf = file.read(self.fw_8339_size)
+            
+fw_data = firmware_data()
 
 class ch341_class(object):
 
@@ -11,7 +39,18 @@ class ch341_class(object):
         self.dll = None
         self.target = -1
         self.status = 0  # idle
+        self.read_setting_flag = 1
         self.dll_name = "CH341DLL.DLL"
+
+        self.connected = 0
+        
+        self.addr_brightness = 0x22
+        self.addr_contrast = 0x23
+        self.addr_saturation = 0x24
+        self.addr_backlight = 0x25
+        self.addr_cell_count = 0x26
+        self.addr_warning_cell_voltage = 0x27
+        self.addr_fpga_device = 0x65  # 7bit address
 
         self.target_id = 0
         self.fw_path = ""
@@ -21,12 +60,28 @@ class ch341_class(object):
 
         self.iolength = 6
         self.iobuffer = create_string_buffer(65544)
+        self.rdbuffer = [0] * 256
         self.write_crc = 0
-
+        self.read_crc = 0
+        
         try:
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
             print("please install driver")
+            
+    def ch341read_i2c(self, addr):
+        self.dll.CH341ReadI2C(0, self.addr_fpga_device, addr, self.iobuffer)
+        return int.from_bytes(self.iobuffer[0], byteorder='big')
+        
+    def read_setting(self):
+        global_var.brightness = self.ch341read_i2c(self.addr_brightness)
+        global_var.contrast = self.ch341read_i2c(self.addr_contrast)
+        global_var.saturation = self.ch341read_i2c(self.addr_saturation)
+        global_var.backlight = self.ch341read_i2c(self.addr_backlight)        
+        fpga_version = self.ch341read_i2c(0xff)
+        
+        print(f"bri:{global_var.brightness:d} con:{global_var.contrast:d}\
+              sat:{global_var.saturation:d} bac:{global_var.backlight:d} fpga_version:{fpga_version:x}")
 
     def set_stream(self, cs):
         if cs == True:
@@ -84,7 +139,18 @@ class ch341_class(object):
         self.set_stream(0)
         self.stream_spi4()
         self.set_stream(1)
+        
+    def flash_erase_block64_m(self, addr):
+        self.iobuffer[0] = 0xd8
+        self.iobuffer[1] = (addr >> 16) & 0xff
+        self.iobuffer[2] = (addr >> 8) & 0xff
+        self.iobuffer[3] = (addr >> 0) & 0xff
+        self.ilength = 4
 
+        self.set_stream(0)
+        self.stream_spi4()
+        self.set_stream(1)
+        
     def flash_erase_section(self, addr):
         self.iobuffer[0] = 0x20
         self.iobuffer[1] = (addr >> 16) & 0x1f
@@ -112,7 +178,14 @@ class ch341_class(object):
         self.set_stream(0)
         self.stream_spi4()
         self.set_stream(1)
-        return (int.from_bytes(self.iobuffer[1], byteorder='big') & 1)
+        
+        return (int.from_bytes(self.iobuffer[1], byteorder='little') & 1)
+    
+    def flash_erase_flash(self, block):
+        self.flash_write_enable()
+        self.flash_erase_block64_m(block)
+        self.flash_wait_busy()
+        self.flash_write_disable()
 
     def flash_wait_busy(self):
         while True:
@@ -142,20 +215,31 @@ class ch341_class(object):
                 self.iobuffer[4+i] = fw[i]
             except:
                 self.iobuffer[4+i] = 0xff
-
-            self.write_crc += int.from_bytes(
-                self.iobuffer[4 + i], byteorder='big')
-            self.write_crc &= 0xffff
+                
+            #self.write_crc += int.from_bytes(self.iobuffer[4 + i], byteorder='little')
+        
+        self.set_stream(0)
+        self.stream_spi4()
+        self.set_stream(1)  
+                    
+    def flash_read_page(self, base_address, length):
+        self.iobuffer[0] = 0x03
+        self.iobuffer[1] = (base_address >> 16) & 0xff
+        self.iobuffer[2] = (base_address >> 8) & 0xff
+        self.iobuffer[3] = (base_address >> 0) & 0xff
+        self.ilength = 4 + length
 
         self.set_stream(0)
         self.stream_spi4()
         self.set_stream(1)
 
+        for i in range(256):
+            self.rdbuffer[i] = self.iobuffer[i+4]
+
     def connect_vtx(self):
         if self.dll.CH341OpenDevice(0) < 0:
             return 0
         else:
-
             self.flash_switch0()
             flash_id_0 = self.flash_read_id()
             self.flash_switch1()
@@ -188,23 +272,53 @@ class ch341_class(object):
             self.flash_wait_busy()
             
             my_ch341.written_len += 256
-
+            
+    def connect_hybridview(self, sleep_sec):
+        if self.dll.CH341OpenDevice(0) < 0:
+            return 0
+        else:
+            #self.dll.CH341SetStream(0, 0x82)
+            time.sleep(sleep_sec)
+            self.flash_switch1()
+            flash_id_2 = self.flash_read_id()
+            if flash_id_2 == 0xEF4018:
+                return 1
+            else:
+                return 0
+            
+    def fw_write_to_flash(self, fw_buf, fw_size):
+        page_number = (fw_size + (1 << 8) - 1) >> 8
+        for page in range(page_number):
+            block = page << 8
+            if (block & 0xffff) == 0:
+                self.flash_erase_flash(block)
+    
+            base_address = page << 8
+            self.flash_write_enable()
+            self.flash_write_page(base_address, 256, fw_buf[base_address:])
+            self.flash_write_disable()
+            self.flash_wait_busy()        
+            my_ch341.written_len += 256
+"""
+        for page in range(page_number):
+            base_address = page << 8
+            self.flash_read_page(base_address, 256)
+            
+            for i in range(256):
+                self.read_crc += int.from_bytes(self.rdbuffer[i], byteorder='little')
+"""
 
 my_ch341 = ch341_class()
 
-
 def ch341_thread_proc():
-
     while True:
         if my_ch341.status == 255:
             sys.exit()
+            
         if my_ch341.status == 1:  # connect vtx
-            while True:
-                if my_ch341.connect_vtx() == 1:
-                    my_ch341.status = 2
-                    break
-                else:
-                    time.sleep(0.1)
+            if my_ch341.connect_vtx() == 1:
+                my_ch341.status = 2
+
         elif my_ch341.status == 3:  # update vtx
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
@@ -212,5 +326,30 @@ def ch341_thread_proc():
             my_ch341.flash_write_target_id()
             my_ch341.flash_write_fw()
             my_ch341.status = 4
-
-        time.sleep(0.01)
+            
+        #-------- HybridView ----------------- 
+        elif  my_ch341.status == 21:     #connect HybridView
+            if my_ch341.connect_hybridview(0.5) == 1:
+                my_ch341.status = 22
+                my_ch341.connected = 1
+                my_ch341.read_setting_flag = 1
+            
+        elif my_ch341.status == 23:  # update HybridView
+            my_ch341.written_len = 0
+            my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
+            fw_data.parse_hybridview_fw(my_ch341.fw_path)
+            
+        elif my_ch341.status == 24:
+            my_ch341.flash_switch0()
+            my_ch341.fw_write_to_flash(fw_data.fw_5680_buf, fw_data.fw_5680_size)
+            my_ch341.flash_switch1()            
+            my_ch341.fw_write_to_flash(fw_data.fw_fpga_buf, fw_data.fw_fpga_size)
+            my_ch341.flash_switch2()
+            my_ch341.fw_write_to_flash(fw_data.fw_8339_buf, fw_data.fw_8339_size)
+            my_ch341.dll.CH341CloseDevice(0)
+            my_ch341.flash_release()
+            my_ch341.status = 25
+        else:
+            time.sleep(0.1)    
+        
+            

@@ -3,9 +3,7 @@ from main_window import ui_thread_proc
 from download import download_thread_proc
 from ch341 import ch341_thread_proc
 
-
 def main():
-
     download_thread = threading.Thread(
         target=download_thread_proc, name="download")
     download_thread.start()
