@@ -3,47 +3,32 @@ import time
 import sys
 import os
 from ctypes import create_string_buffer
-import constants
 from frame_hybrid_view import frame_hybrid_viewer
 import tkinter as tk
 from tkinter import ttk
-import global_var
+from global_var import *
 from ctypes import *
-
-class firmware_data(object):
-    
-    def __init__(self):
-        
-        self.fw_5680_size = 0
-        self.fw_5680_buf = create_string_buffer(constants.FW_5680SIZE)
-        self.fw_fpga_size = 0
-        self.fw_fpga_buf = create_string_buffer(constants.FW_FPGASIZE)
-        self.fw_8339_size = 0
-        self.fw_8339_buf = create_string_buffer(constants.FW_8339SIZE)
-        
-    def parse_hybridview_fw(self, fw_path):
-        with open(fw_path, "rb") as file:
-            file.seek(2)
-            self.fw_5680_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_fpga_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_8339_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_5680_buf = file.read(self.fw_5680_size)
-            self.fw_fpga_buf = file.read(self.fw_fpga_size)
-            self.fw_8339_buf = file.read(self.fw_8339_size)
-            
-fw_data = firmware_data()
+import global_var
 
 class ch341_class(object):
 
     def __init__(self):
+        FW_5680SIZE = 65536
+        FW_FPGASIZE = 2*1024*1024
+        FW_8339SIZE = 10*1024*1024
+        self.fw_5680_size = 0
+        self.fw_5680_buf = create_string_buffer(FW_5680SIZE)
+        self.fw_fpga_size = 0
+        self.fw_fpga_buf = create_string_buffer(FW_FPGASIZE)
+        self.fw_8339_size = 0
+        self.fw_8339_buf = create_string_buffer(FW_8339SIZE)
+        
         self.dll = None
         self.target = -1
-        self.status = 0  # idle
+        self.status = ch341_status.IDLE.value        # idle
         self.read_setting_flag = 1
         self.dll_name = "CH341DLL.DLL"
 
-        self.connected = 0
-        
         self.addr_brightness = 0x22
         self.addr_contrast = 0x23
         self.addr_saturation = 0x24
@@ -57,7 +42,8 @@ class ch341_class(object):
         
         self.written_len = 0
         self.to_write_len = 100
-
+        
+        self.connected = 0
         self.iolength = 6
         self.iobuffer = create_string_buffer(65544)
         self.rdbuffer = [0] * 256
@@ -68,6 +54,16 @@ class ch341_class(object):
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
             print("please install driver")
+            
+    def parse_hybridview_fw(self, fw_path):
+        with open(fw_path, "rb") as file:
+            file.seek(2)
+            self.fw_5680_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_fpga_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_8339_size = int.from_bytes(file.read(4), byteorder='little')
+            self.fw_5680_buf = file.read(self.fw_5680_size)
+            self.fw_fpga_buf = file.read(self.fw_fpga_size)
+            self.fw_8339_buf = file.read(self.fw_8339_size)
             
     def ch341read_i2c(self, addr):
         self.dll.CH341ReadI2C(0, self.addr_fpga_device, addr, self.iobuffer)
@@ -312,43 +308,43 @@ my_ch341 = ch341_class()
 
 def ch341_thread_proc():
     while True:
-        if my_ch341.status == 255:
+        if my_ch341.status == ch341_status.STATUS_EXIT.value:
             sys.exit()
             
-        if my_ch341.status == 1:  # connect vtx
+        if my_ch341.status == ch341_status.VTX_NOTCONNECTED.value:  # connect vtx
             if my_ch341.connect_vtx() == 1:
-                my_ch341.status = 2
+                my_ch341.status = ch341_status.VTX_CONNECTED.value
 
-        elif my_ch341.status == 3:  # update vtx
+        elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # update vtx
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
             my_ch341.flash_erase_vtx()
             my_ch341.flash_write_target_id()
             my_ch341.flash_write_fw()
-            my_ch341.status = 4
+            my_ch341.status = ch341_status.VTX_UPDATEDONE.value
             
         #-------- HybridView ----------------- 
-        elif  my_ch341.status == 21:     #connect HybridView
+        elif  my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:     #connect HybridView
             if my_ch341.connect_hybridview(0.5) == 1:
-                my_ch341.status = 22
+                my_ch341.status = ch341_status.HYBRIDVIEW_CONNECTED.value
                 my_ch341.connected = 1
                 my_ch341.read_setting_flag = 1
             
-        elif my_ch341.status == 23:  # update HybridView
+        elif my_ch341.status == ch341_status.HYBRIDVIEW_GET_FW.value:  # get HybridView firmware
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-            fw_data.parse_hybridview_fw(my_ch341.fw_path)
+            my_ch341.parse_hybridview_fw(my_ch341.fw_path)
             
-        elif my_ch341.status == 24:
+        elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value: # update HybridView
             my_ch341.flash_switch0()
-            my_ch341.fw_write_to_flash(fw_data.fw_5680_buf, fw_data.fw_5680_size)
+            my_ch341.fw_write_to_flash(my_ch341.fw_5680_buf, my_ch341.fw_5680_size)
             my_ch341.flash_switch1()            
-            my_ch341.fw_write_to_flash(fw_data.fw_fpga_buf, fw_data.fw_fpga_size)
+            my_ch341.fw_write_to_flash(my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
             my_ch341.flash_switch2()
-            my_ch341.fw_write_to_flash(fw_data.fw_8339_buf, fw_data.fw_8339_size)
+            my_ch341.fw_write_to_flash(my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
             my_ch341.dll.CH341CloseDevice(0)
             my_ch341.flash_release()
-            my_ch341.status = 25
+            my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
         else:
             time.sleep(0.1)    
         

@@ -69,29 +69,24 @@ class frame_hybrid_viewer:
         self.write_i2c(self.addr_usb_heart, self.heart_cnt)
     
     def write_i2c(self, addr, byte):
-        print(f"addr:{addr:x}  byte: {byte:d}")
         self.dll.CH341WriteI2C(0, self.addr_usb_write_fpga_device, addr, byte)    
         
     def write_brightness(self, b):
-        if global_var.brightness != b:
             global_var.brightness = b
             self.write_i2c(self.addr_usb_write_brightness, b)
             print(f"write_brightness {b}")
 
     def write_contrast(self, c):
-        if global_var.contrast != c:
             global_var.contrast = c
             self.write_i2c(self.addr_usb_write_contrast, c)
             print(f"write_contrast {c}")
 
     def write_saturation(self, s):
-        if global_var.saturation != s:
             global_var.saturation = s
             self.write_i2c(self.addr_usb_write_saturation, s)
             print(f"write_saturation {s}")
 
     def write_backlight(self, l):
-        if global_var.backlight != l:
             global_var.backlight = l
             self.write_i2c(self.addr_usb_write_backlight, l)
             print(f"write_backlight {l}")
@@ -101,7 +96,6 @@ class frame_hybrid_viewer:
         usually used for sync vrx setting.
         NOTE: Must run after setting_enable
         """
-
         self.write_brightness(b)
         self.write_contrast(c)
         self.write_saturation(s)
