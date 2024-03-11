@@ -15,12 +15,15 @@ from parse_file import *
 import global_var
 from global_var import *
 from ch341 import my_ch341
+import base64
+from icon32 import icon32
+import io
 class MyGUI:
 
     def __init__(self, init_window_name):
         self.winWidth = 640
         self.winHeight = 320    #280
-        self.title = "HDZero Programmer v0.0.1"
+        self.title = "HDZero Programmer"
 
         self._programmer_frame = None
         self._main_window = init_window_name
@@ -45,6 +48,13 @@ class MyGUI:
         self._main_window.title(self.title)
         self._main_window.geometry("%sx%s+%s+%s" %(self.winWidth, self.winHeight, x, y))
         self._main_window.resizable(False, False)
+        
+        icon_base64 = base64.b64decode(icon32)
+        icon_bytes = io.BytesIO(icon_base64)
+        icon = tk.PhotoImage(data=icon_bytes.getvalue())
+        
+        self._main_window.iconphoto(True, icon)
+
 
     def init_tab(self):
         self._tabCtrl = ttk.Notebook(self._main_window)
@@ -116,11 +126,12 @@ class MyGUI:
             my_ch341.status = ch341_status.HYBRIDVIEW_GET_FW.value
    
     def on_update(self):
-        self._programmer_frame.version_combobox_disable()
-        self._programmer_frame.local_fw_button_disable()
-        self._programmer_frame.update_button_disable()
-        self._vtx_frame.target_combobox_disable()
-        self._hybrid_viewer_frame.setting_disable()
+        if my_ch341.connect_hybridview(0) == 1:
+            self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.local_fw_button_disable()
+            self._programmer_frame.update_button_disable()
+            self._vtx_frame.target_combobox_disable()
+            self._hybrid_viewer_frame.setting_disable()
 
         if self.current_selected_tab() == 0:
             my_ch341.status = ch341_status.VTX_NOTCONNECTED.value  # to connect vtx
@@ -128,10 +139,11 @@ class MyGUI:
             self._statusbar_frame.progress_bar_set_value(1)
             
         elif self.current_selected_tab() == 1:
-            self._statusbar_frame.status_label_set_text("Updating HybridView ...")
-            self._statusbar_frame.progress_bar_set_value(1)
-            my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
-            
+            if my_ch341.connect_hybridview(0) == 1:
+                self._statusbar_frame.status_label_set_text("Updating HybridView ...")
+                self._statusbar_frame.progress_bar_set_value(1)
+                my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
+                
     def version_selection_disable(self):
         self._programmer_frame.version_combobox.config(state="disabled")
 
@@ -156,10 +168,7 @@ class MyGUI:
             
         elif self.current_selected_tab() == 1:
             my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value        # to connect HybridView
-            self._vtx_frame.target_combobox_set_default()
-            self._programmer_frame.version_combobox_enable()
-            self._programmer_frame.local_fw_button_enable()
-            
+
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
 
@@ -222,17 +231,25 @@ class MyGUI:
             my_ch341.status = ch341_status.IDLE.value
             
         # ------------ HybridView ---------------
+        elif my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:
+            if my_ch341.connect_hybridview(0) == 0:
+                self._hybrid_viewer_frame.setting_disable()
+
         elif my_ch341.status == ch341_status.HYBRIDVIEW_CONNECTED.value:  # HybridView is connected
             if self.current_selected_tab() == 1:
                 if my_ch341.connected == 1 and my_ch341.read_setting_flag == 1:
                     self._hybrid_viewer_frame.setting_enable()
-                    my_ch341.read_setting()
                     my_gui.version_selection_enable()
-                    self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation, global_var.backlight)
+                    self._programmer_frame.local_fw_button_enable()
+                    my_ch341.read_setting()
+                    self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation, 
+                        global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
                     my_ch341.read_setting_flag = 0
                 else:
                     if my_ch341.connect_hybridview(0) == 0:
-                        self._hybrid_viewer_frame.setting_disable()
+                        self._hybrid_viewer_frame.setting_disable()                    
+                        my_gui.version_selection_disable()
+                        self._programmer_frame.local_fw_button_disable()
                         my_ch341.connected = 0
                         my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value
                         my_ch341.read_setting_flag = 1
@@ -241,7 +258,7 @@ class MyGUI:
                 
         elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value:  # refresh progress bar
             value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
-            print("value: ", value)
+            print("progress_bar_value: ", value)
             self._statusbar_frame.progress_bar_set_value(value)
 
         elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATEDONE.value:  # HybridView update done

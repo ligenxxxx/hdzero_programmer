@@ -2,7 +2,8 @@ brightness = 0
 contrast = 0
 saturation = 0
 backlight = 100
-
+cell_count = 1
+warning_cell_voltage = 28
 
 from enum import Enum, unique
 from enum import IntEnum

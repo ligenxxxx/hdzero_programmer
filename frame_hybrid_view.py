@@ -74,24 +74,34 @@ class frame_hybrid_viewer:
     def write_brightness(self, b):
             global_var.brightness = b
             self.write_i2c(self.addr_usb_write_brightness, b)
-            print(f"write_brightness {b}")
+            #print(f"write_brightness {b}")
 
     def write_contrast(self, c):
             global_var.contrast = c
             self.write_i2c(self.addr_usb_write_contrast, c)
-            print(f"write_contrast {c}")
+            #print(f"write_contrast {c}")
 
     def write_saturation(self, s):
             global_var.saturation = s
             self.write_i2c(self.addr_usb_write_saturation, s)
-            print(f"write_saturation {s}")
+            #print(f"write_saturation {s}")
 
     def write_backlight(self, l):
             global_var.backlight = l
             self.write_i2c(self.addr_usb_write_backlight, l)
-            print(f"write_backlight {l}")
+            #print(f"write_backlight {l}")
 
-    def write_setting(self, b, c, s, l):
+    def write_cell_count(self, cell):
+            global_var.cell_count = cell
+            self.write_i2c(self.addr_usb_write_cell_count, cell)
+            #print(f"write_cell_count {cell}")
+            
+    def write_warning_cell_voltage(self, warning_cell):
+            global_var.warning_cell_voltage = warning_cell
+            self.write_i2c(self.addr_usb_write_warning_cell_voltage, warning_cell)
+            #print(f"write_warning_cell_voltage {warning_cell}")
+
+    def write_setting(self, b, c, s, l, cell, warning_cell):
         """write setting from vrx.
         usually used for sync vrx setting.
         NOTE: Must run after setting_enable
@@ -100,19 +110,27 @@ class frame_hybrid_viewer:
         self.write_contrast(c)
         self.write_saturation(s)
         self.write_backlight(l)
+        self.write_cell_count(cell)
+        self.write_warning_cell_voltage(warning_cell)
                 
         # update scale
         self.brightness_scale.set(b)
         self.contrast_scale.set(c)
         self.saturation_scale.set(s)
         self.backlight_scale.set(l)
+        self.cell_count_scale.set(cell)
+        self.warning_cell_voltage_scale.set(warning_cell)
 
         # update label        
         self.brightness_label.config(text=f'{b}')
         self.contrast_label.config(text=f'{c}')
         self.saturation_label.config(text=f'{s}')
         self.backlight_label.config(text=f'{l}')
-        
+
+        option = ["Auto", "2S", "3S", "4S", "5S"]
+        self.cell_count_label.config(text=option[cell-1])
+        self.warning_cell_voltage_label.config(text=f"{warning_cell/10}")
+
     def setting_disable(self):
         self.brightness_scale.configure(state="disabled")
         self.contrast_scale.configure(state="disabled")
@@ -147,7 +165,18 @@ class frame_hybrid_viewer:
     def on_backlight_scale_changed(self, value):
         self.backlight_label.config(text=f"{int(float(value))}")
         self.write_backlight(int(float(value)))
-
+        
+    def on_cell_count_scale_changed(self, value):
+        option = ["Auto", "2S", "3S", "4S", "5S"]
+        self.cell_count = int(float(value))
+        self.cell_count_label.config(text=option[self.cell_count-1])
+        self.write_cell_count(int(float(value)))
+    
+    def on_warning_cell_voltage_scale_changed(self, value):
+        self.warning_cell_voltage = int(float(value))
+        self.warning_cell_voltage_label.config(text=f"{self.warning_cell_voltage/10}")
+        self.write_warning_cell_voltage(int(float(value)))
+        
     def init_image_setting(self):
         # brighrness
         row = 0
@@ -197,22 +226,12 @@ class frame_hybrid_viewer:
         self.backlight_label =  ttk.Label(self._frame, text="0")
         self.backlight_label.grid(row=row, column=2, sticky="w", padx=10)
 
-    def on_cell_count_scale_changed(self, value):
-        option = ["Auto", "2S", "3S", "4S"]
-        
-        self.cell_count = int(float(value))
-        self.cell_count_label.config(text=option[self.cell_count])
-    
-    def on_warning_cell_voltage_scale_changed(self, value):
-        self.warning_cell_voltage = int(float(value))
-        self.warning_cell_voltage_label.config(text=f"{self.warning_cell_voltage/10}")
-        
     def init_power_setting(self):
         row = 4
         label = ttk.Label(self._frame, text="Cell Count")
         label.grid(row=row, column=0, sticky="w", padx=20)
         
-        self.cell_count_scale = ttk.Scale(self._frame, from_=0, to=3, orient="horizontal",
+        self.cell_count_scale = ttk.Scale(self._frame, from_=self.cell_count_min, to=self.cell_count_max, orient="horizontal",
                                    length=350, command=self.on_cell_count_scale_changed)
         self.cell_count_scale.grid(row=row, column=1, sticky="w", padx=20)
         
@@ -223,8 +242,8 @@ class frame_hybrid_viewer:
         label = ttk.Label(self._frame, text="Warning Cell Voltage")
         label.grid(row=row, column=0, sticky="w", padx=20)
         
-        self.warning_cell_voltage_scale = ttk.Scale(self._frame, from_=28, to=42, orient="horizontal",
-                                   length=350, command=self.on_warning_cell_voltage_scale_changed)
+        self.warning_cell_voltage_scale = ttk.Scale(self._frame, from_=self.warning_cell_voltage_min, to=self.warning_cell_voltage_max, 
+                                        orient="horizontal",length=350, command=self.on_warning_cell_voltage_scale_changed)
         self.warning_cell_voltage_scale.grid(row=row, column=1, sticky="w", padx=20)
         
         self.warning_cell_voltage_label = ttk.Label(self._frame, text="2.8")

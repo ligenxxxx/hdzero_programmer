@@ -65,7 +65,7 @@ class frame_programmer:
             self.local_file_path = filedialog.askopenfilename(
                 initialdir=".", title="select a firmware", filetypes=filetypes)
         except:
-            a = 1
+            print("please select a firmware file")
 
         if self.local_file_path:
             self.mode = 1

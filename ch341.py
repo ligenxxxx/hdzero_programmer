@@ -73,11 +73,13 @@ class ch341_class(object):
         global_var.brightness = self.ch341read_i2c(self.addr_brightness)
         global_var.contrast = self.ch341read_i2c(self.addr_contrast)
         global_var.saturation = self.ch341read_i2c(self.addr_saturation)
-        global_var.backlight = self.ch341read_i2c(self.addr_backlight)        
+        global_var.backlight = self.ch341read_i2c(self.addr_backlight)
+        global_var.cell_count = self.ch341read_i2c(self.addr_cell_count)
+        global_var.warning_cell_voltage = self.ch341read_i2c(self.addr_warning_cell_voltage)
         fpga_version = self.ch341read_i2c(0xff)
-        
-        print(f"bri:{global_var.brightness:d} con:{global_var.contrast:d}\
-              sat:{global_var.saturation:d} bac:{global_var.backlight:d} fpga_version:{fpga_version:x}")
+        #print(f"bri:{global_var.brightness:d} con:{global_var.contrast:d}\
+        #    sat:{global_var.saturation:d} bac:{global_var.backlight:d}\
+        #    cell:{global_var.cell_count:d} warning_cell:{global_var.warning_cell_voltage:d} fpga_version:{fpga_version:x}")
 
     def set_stream(self, cs):
         if cs == True:
@@ -325,11 +327,11 @@ def ch341_thread_proc():
             
         #-------- HybridView ----------------- 
         elif  my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:     #connect HybridView
-            if my_ch341.connect_hybridview(0.5) == 1:
+            if my_ch341.connect_hybridview(2) == 1:
                 my_ch341.status = ch341_status.HYBRIDVIEW_CONNECTED.value
                 my_ch341.connected = 1
-                my_ch341.read_setting_flag = 1
-            
+                my_ch341.read_setting_flag = 1    
+
         elif my_ch341.status == ch341_status.HYBRIDVIEW_GET_FW.value:  # get HybridView firmware
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
@@ -338,10 +340,10 @@ def ch341_thread_proc():
         elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value: # update HybridView
             my_ch341.flash_switch0()
             my_ch341.fw_write_to_flash(my_ch341.fw_5680_buf, my_ch341.fw_5680_size)
-            my_ch341.flash_switch1()            
-            my_ch341.fw_write_to_flash(my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
-            my_ch341.flash_switch2()
-            my_ch341.fw_write_to_flash(my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
+            #my_ch341.flash_switch1()            
+            #my_ch341.fw_write_to_flash(my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
+            #my_ch341.flash_switch2()
+            #my_ch341.fw_write_to_flash(my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
             my_ch341.dll.CH341CloseDevice(0)
             my_ch341.flash_release()
             my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
