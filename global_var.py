@@ -5,6 +5,10 @@ backlight = 100
 cell_count = 1
 warning_cell_voltage = 28
 
+nIndex = 0
+PAGE_SIZE = 256
+HEAD_SIZE = 4
+
 from enum import Enum, unique
 from enum import IntEnum
 
@@ -15,12 +19,18 @@ class ch341_status(Enum):
     VTX_UPDATE = 3
     VTX_UPDATEDONE = 4
     
-    HYBRIDVIEW_NOTCONNECTED = 21
-    HYBRIDVIEW_CONNECTED = 22
-    HYBRIDVIEW_GET_FW = 23
-    HYBRIDVIEW_UPDATE = 24
-    HYBRIDVIEW_UPDATEDONE = 25
+    HYBRIDVIEW_NOTCONNECTED = 11
+    HYBRIDVIEW_CONNECTED = 12
+    HYBRIDVIEW_GET_FW = 13
+    HYBRIDVIEW_UPDATE = 14
+    HYBRIDVIEW_UPDATEDONE = 15
     
+    EVENTVRX_NOTCONNECTED = 21
+    EVENTVRX_CONNECTED = 22
+    EVENTVRX_GET_FW = 23
+    EVENTVRX_UPDATE = 24
+    EVENTVRX_UPDATEDONE = 25
+
     STATUS_EXIT = 255
     
 class download_status(Enum):

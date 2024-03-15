@@ -29,6 +29,7 @@ class ch341_class(object):
         self.read_setting_flag = 1
         self.dll_name = "CH341DLL.DLL"
 
+        #------ hybridview -------------
         self.addr_brightness = 0x22
         self.addr_contrast = 0x23
         self.addr_saturation = 0x24
@@ -43,13 +44,36 @@ class ch341_class(object):
         self.written_len = 0
         self.to_write_len = 100
         
-        self.connected = 0
+        self.hybridview_connected = 0
         self.iolength = 6
         self.iobuffer = create_string_buffer(65544)
         self.rdbuffer = [0] * 256
         self.write_crc = 0
         self.read_crc = 0
         
+        #--------- event vrx ------------------------
+        self.WRITE_ENABLE = 0x06  			
+        self.WRITE_DISABLE = 0x04     		
+        self.READ_STATUS_REG1 = 0x05  		
+        self.READ_STATUS_REG2 = 0x35  		
+        self.READ_DATA = 0x03     			
+        self.EWSR = 0x50     				
+        self.FAST_READ = 0x0B     			
+        self.PAGE_PROGRAM = 0x02  			#Byte Prog Mode
+        self.SECTOR_ERASE_4K = 0x20   		#Erase 4 KByte of memory array
+        self.BLOCK_ERASE_32K = 0x52  		#Erase 32 KByte block of memory array
+        self.BLOCK_ERASE_64K = 0xD8   		#Erase 64 KByte block of memory array
+        self.CHIP_ERASE = 0xC7    			#Erase one chip flash
+        self.SELECT_FPGA_5680 = 0x80
+        self.FLASH_STATUS = 0x05  			#read flash status
+        self.FLASH_SET_5680 = 0xffff40ff
+        self.FLASH_SET_FPGA = 0xffff80ff
+        self.FLASH_BASE_ADDR = 0x00
+        
+        self.eventvrx_connected = 0
+        self.buffer_size = 2560
+        self.write_buffer = create_string_buffer(self.buffer_size)
+
         try:
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
@@ -297,15 +321,139 @@ class ch341_class(object):
             self.flash_write_disable()
             self.flash_wait_busy()        
             my_ch341.written_len += 256
-"""
+        """
         for page in range(page_number):
             base_address = page << 8
             self.flash_read_page(base_address, 256)
             
             for i in range(256):
                 self.read_crc += int.from_bytes(self.rdbuffer[i], byteorder='little')
-"""
+        """
 
+    #---------------- eventvrx --------------------------------
+    def connect_eventvrx(self):
+        if self.dll.CH341OpenDevice(nIndex) < 0:
+            return 0
+        else:
+            self.dll.CH341SetStream(nIndex, 0x81)
+            print("EventVRX CH341OpenDevice success")
+            return 1
+        
+    def parse_eventvrx_fw(self, fw_path):
+        #print("fw_path: ", fw_path)
+        a = 1
+        
+    def FlashChipErase(self):
+        self.dll.CH341SetStream(nIndex, 0x80)
+        
+        self.iobuffer[0] = self.WRITE_ENABLE
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, self.iobuffer)
+
+        self.iobuffer[0] = self.CHIP_ERASE
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, self.iobuffer)
+
+        self.iobuffer[0] = self.WRITE_DISABLE
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, self.iobuffer)
+    
+    def data_cpy(self, dest, dst_off, src, src_off, length):
+        for i in range(length):
+            dest[dst_off+i] = src[src_off+i]
+
+    def write_SPI(self, addr, data_buf, size):
+        temp_write_buffer = create_string_buffer(int(PAGE_SIZE+HEAD_SIZE))
+        self.dll.CH341SetStream(nIndex, 0x80)
+        
+        page = 0
+        while size > PAGE_SIZE:
+            temp_write_buffer[0] = self.WRITE_ENABLE
+            self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, temp_write_buffer)
+            
+            temp_write_buffer[0] = self.PAGE_PROGRAM
+            temp_write_buffer[1] = ((addr & 0xFF0000) >> 16)
+            temp_write_buffer[2] = ((addr & 0x00FF00) >> 8)
+            temp_write_buffer[3] = (addr & 0x0000FF)
+            
+            self.data_cpy(temp_write_buffer, HEAD_SIZE, data_buf, (page * PAGE_SIZE), PAGE_SIZE)
+            self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, int(PAGE_SIZE+HEAD_SIZE), temp_write_buffer)
+            
+            temp_write_buffer[0] = self.WRITE_DISABLE
+            self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, temp_write_buffer)
+            self.dll.CH341SetDelaymS(nIndex, 2)
+            
+            size -= PAGE_SIZE
+            page += 1
+            addr += PAGE_SIZE
+        
+        temp_write_buffer[0] = self.WRITE_ENABLE
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, temp_write_buffer)
+        
+        temp_write_buffer[0] = self.PAGE_PROGRAM
+        temp_write_buffer[1] = ((addr & 0xFF0000) >> 16)
+        temp_write_buffer[2] = ((addr & 0x00FF00) >> 8)
+        temp_write_buffer[3] = (addr & 0x0000FF)
+        if size < PAGE_SIZE:
+            self.data_cpy(temp_write_buffer, HEAD_SIZE, data_buf, (page * PAGE_SIZE), size)
+        else:
+            self.data_cpy(temp_write_buffer, HEAD_SIZE, data_buf, (page * PAGE_SIZE), PAGE_SIZE)
+            
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, int(PAGE_SIZE+HEAD_SIZE), temp_write_buffer)
+        
+        temp_write_buffer[0] = self.WRITE_DISABLE
+        self.dll.CH341StreamSPI4(nIndex, self.SELECT_FPGA_5680, 1, temp_write_buffer)
+    
+    def write_eventvrx_fw_to_flash(self, path):
+        file = open(path, "rb")
+        file_size = os.path.getsize(path)   # file_size: 2383867
+        head_size = file.read(8)
+        file5680_size = int(head_size) - 2560    # 58581 = 64141 - 2560 
+        print("file: ", path)
+
+        # erase 5680 flash
+        self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_5680)
+        time.sleep(0.01)
+        self.FlashChipErase()
+        time.sleep(1)
+
+        # erase fpga flash
+        self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
+        time.sleep(0.01)
+        self.FlashChipErase()
+        time.sleep(65)  # Wait for all flash erase to be completed
+
+        # write 5680 data to flash         
+        self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_5680)
+        time.sleep(0.01)
+        file.seek(8)
+        
+        page = 0
+        while page * self.buffer_size < file5680_size:       
+            self.write_buffer = file.read(self.buffer_size)
+            self.write_SPI(self.FLASH_BASE_ADDR + (page * self.buffer_size), self.write_buffer, len(self.write_buffer))
+            time.sleep(0.1)
+            page += 1
+        
+        # write 5680 last page data 
+        page -= 1
+        self.write_buffer = file.read(file5680_size - (page * self.buffer_size))
+        self.write_SPI(self.FLASH_BASE_ADDR + (page + 1) * self.buffer_size, self.write_buffer, file5680_size - (page * self.buffer_size))
+        time.sleep(1)
+
+        # write fpga data to flash
+        self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
+        page = 0
+        while True:
+            self.write_buffer = file.read(self.buffer_size)      
+            self.write_SPI(self.FLASH_BASE_ADDR + (page * self.buffer_size), self.write_buffer, len(self.write_buffer))
+            time.sleep(0.1)
+            page += 1
+            if len(self.write_buffer) != self.buffer_size:
+                break
+          
+        file.flush() 
+        file.close()
+        self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
+
+        
 my_ch341 = ch341_class()
 
 def ch341_thread_proc():
@@ -329,7 +477,7 @@ def ch341_thread_proc():
         elif  my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:     #connect HybridView
             if my_ch341.connect_hybridview(2) == 1:
                 my_ch341.status = ch341_status.HYBRIDVIEW_CONNECTED.value
-                my_ch341.connected = 1
+                my_ch341.hybridview_connected = 1
                 my_ch341.read_setting_flag = 1    
 
         elif my_ch341.status == ch341_status.HYBRIDVIEW_GET_FW.value:  # get HybridView firmware
@@ -340,14 +488,30 @@ def ch341_thread_proc():
         elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value: # update HybridView
             my_ch341.flash_switch0()
             my_ch341.fw_write_to_flash(my_ch341.fw_5680_buf, my_ch341.fw_5680_size)
-            #my_ch341.flash_switch1()            
-            #my_ch341.fw_write_to_flash(my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
-            #my_ch341.flash_switch2()
-            #my_ch341.fw_write_to_flash(my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
+            my_ch341.flash_switch1()            
+            my_ch341.fw_write_to_flash(my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
+            my_ch341.flash_switch2()
+            my_ch341.fw_write_to_flash(my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
             my_ch341.dll.CH341CloseDevice(0)
             my_ch341.flash_release()
             my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
+            
+        #---------------------- event_vrx ------------------------------------
+        elif my_ch341.status == ch341_status.EVENTVRX_NOTCONNECTED.value:
+            if my_ch341.connect_eventvrx() == 1:
+                my_ch341.status = ch341_status.EVENTVRX_CONNECTED.value
+                my_ch341.eventvrx_connected = 1
+
+        elif my_ch341.status == ch341_status.EVENTVRX_GET_FW.value:  # get eventvrx firmware
+            my_ch341.written_len = 0
+            my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
+            my_ch341.parse_eventvrx_fw(my_ch341.fw_path)
+            
+        elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value: # update eventvrx
+            my_ch341.write_eventvrx_fw_to_flash(my_ch341.fw_path)
+            print("EVENTVRX_UPDATEDONE")
+            my_ch341.status = ch341_status.EVENTVRX_UPDATEDONE.value
         else:
-            time.sleep(0.1)    
+            time.sleep(0.1)
         
             

@@ -184,7 +184,7 @@ class frame_hybrid_viewer:
         label.grid(row=row, column=0, sticky="w", padx=20)
         
         self.brightness_scale = ttk.Scale(self._frame, from_=self.brightness_min, to=self.brightness_max, orient="horizontal",
-                                     length=350, command=self.on_brightness_scale_changed)
+                                length=350, command=self.on_brightness_scale_changed)
         self.brightness_scale.grid(row=row, column=1, sticky="w", padx=20)
         
         self.brightness_label = ttk.Label(self._frame, text="0")

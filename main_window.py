@@ -118,12 +118,19 @@ class MyGUI:
                 self._statusbar_frame.status_label_set_text("FW: Local")
                 self._programmer_frame.update_button_enable()
               
-        if self.current_selected_tab() == 1:
+        elif self.current_selected_tab() == 1:
             self._statusbar_frame.status_label_set_text("FW: Local")
             self._programmer_frame.update_button_enable()        
             self._programmer_frame.mode = 1
             my_ch341.fw_path = self._programmer_frame.local_file_path
             my_ch341.status = ch341_status.HYBRIDVIEW_GET_FW.value
+            
+        elif self.current_selected_tab() == 2:
+            self._statusbar_frame.status_label_set_text("FW: Local")
+            self._programmer_frame.update_button_enable()        
+            self._programmer_frame.mode = 1
+            my_ch341.fw_path = self._programmer_frame.local_file_path
+            my_ch341.status = ch341_status.EVENTVRX_GET_FW.value
    
     def on_update(self):
         if my_ch341.connect_hybridview(0) == 1:
@@ -144,6 +151,12 @@ class MyGUI:
                 self._statusbar_frame.progress_bar_set_value(1)
                 my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
                 
+        elif self.current_selected_tab() == 2:
+            if my_ch341.connect_eventvrx() == 1:
+                self._statusbar_frame.status_label_set_text("Updating EventVRX ...")
+                self._statusbar_frame.progress_bar_set_value(1)
+                my_ch341.status = ch341_status.EVENTVRX_UPDATE.value
+
     def version_selection_disable(self):
         self._programmer_frame.version_combobox.config(state="disabled")
 
@@ -161,14 +174,16 @@ class MyGUI:
         self._programmer_frame.version_combobox_update_values("")
         self._programmer_frame.version_combobox_set_default()
         self._programmer_frame.update_button_disable()
+
         if self.current_selected_tab() == 0:
             self._vtx_frame.target_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
             self._programmer_frame.local_fw_button_disable()
-            
         elif self.current_selected_tab() == 1:
-            my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value        # to connect HybridView
-
+            my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value   # to connect HybridView
+        elif self.current_selected_tab() == 2:
+            my_ch341.status = ch341_status.EVENTVRX_NOTCONNECTED.value     # to connect eventvrx
+        
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
 
@@ -237,7 +252,7 @@ class MyGUI:
 
         elif my_ch341.status == ch341_status.HYBRIDVIEW_CONNECTED.value:  # HybridView is connected
             if self.current_selected_tab() == 1:
-                if my_ch341.connected == 1 and my_ch341.read_setting_flag == 1:
+                if my_ch341.hybridview_connected == 1 and my_ch341.read_setting_flag == 1:
                     self._hybrid_viewer_frame.setting_enable()
                     my_gui.version_selection_enable()
                     self._programmer_frame.local_fw_button_enable()
@@ -250,7 +265,7 @@ class MyGUI:
                         self._hybrid_viewer_frame.setting_disable()                    
                         my_gui.version_selection_disable()
                         self._programmer_frame.local_fw_button_disable()
-                        my_ch341.connected = 0
+                        my_ch341.hybridview_connected = 0
                         my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value
                         my_ch341.read_setting_flag = 1
                                     
@@ -268,6 +283,38 @@ class MyGUI:
             self._vtx_frame.target_combobox_enable()
             self._programmer_frame.update_button_disable()
             self._statusbar_frame.status_label_set_text("Update HybridView Done")            
+            my_ch341.status = ch341_status.IDLE.value
+
+        # --------------------- eventvrx -------------------------------
+        elif my_ch341.status == ch341_status.EVENTVRX_NOTCONNECTED.value:
+            if my_ch341.connect_eventvrx() == 0:
+                my_gui.version_selection_disable()
+                self._programmer_frame.local_fw_button_disable()
+
+        elif my_ch341.status == ch341_status.EVENTVRX_CONNECTED.value:  # eventvrx is connected
+            if self.current_selected_tab() == 2:
+                if my_ch341.eventvrx_connected == 1:
+                    my_gui.version_selection_enable()
+                    self._programmer_frame.local_fw_button_enable()
+                else:
+                    if my_ch341.connect_eventvrx() == 0:
+                        my_gui.version_selection_disable()
+                        self._programmer_frame.local_fw_button_disable()
+                        my_ch341.eventvrx_connected = 0
+                        my_ch341.status = ch341_status.EVENTVRX_NOTCONNECTED.value
+                                                    
+        elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value:  # eventvrx refresh progress bar
+            value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
+            #print("progress_bar_value: ", value)
+            self._statusbar_frame.progress_bar_set_value(value)
+
+        elif my_ch341.status == ch341_status.EVENTVRX_UPDATEDONE.value:  # eventvrx update done
+            self._statusbar_frame.progress_bar_set_value(100)
+            self._programmer_frame.version_combobox_enable()
+            self._programmer_frame.local_fw_button_enable()
+            self._vtx_frame.target_combobox_enable()
+            self._programmer_frame.update_button_disable()
+            self._statusbar_frame.status_label_set_text("Update EventVRX Done")            
             my_ch341.status = ch341_status.IDLE.value
 
         self._main_window.after(100, self.refresh)
