@@ -336,12 +336,7 @@ class ch341_class(object):
             return 0
         else:
             self.dll.CH341SetStream(nIndex, 0x81)
-            print("EventVRX CH341OpenDevice success")
             return 1
-        
-    def parse_eventvrx_fw(self, fw_path):
-        #print("fw_path: ", fw_path)
-        a = 1
         
     def FlashChipErase(self):
         self.dll.CH341SetStream(nIndex, 0x80)
@@ -409,16 +404,23 @@ class ch341_class(object):
         print("file: ", path)
 
         # erase 5680 flash
+        my_ch341.written_len += 15 * PAGE_SIZE
         self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_5680)
         time.sleep(0.01)
         self.FlashChipErase()
+        my_ch341.written_len += 15 * PAGE_SIZE
         time.sleep(1)
 
         # erase fpga flash
         self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
         time.sleep(0.01)
         self.FlashChipErase()
-        time.sleep(65)  # Wait for all flash erase to be completed
+        my_ch341.written_len += 15 * PAGE_SIZE
+        #time.sleep(65)  # Wait for all flash erase to be completed
+        for i in range (65):
+            time.sleep(1)
+            my_ch341.written_len += 10 * PAGE_SIZE
+
 
         # write 5680 data to flash         
         self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_5680)
@@ -429,6 +431,7 @@ class ch341_class(object):
         while page * self.buffer_size < file5680_size:       
             self.write_buffer = file.read(self.buffer_size)
             self.write_SPI(self.FLASH_BASE_ADDR + (page * self.buffer_size), self.write_buffer, len(self.write_buffer))
+            my_ch341.written_len += 15 * PAGE_SIZE
             time.sleep(0.1)
             page += 1
         
@@ -437,6 +440,8 @@ class ch341_class(object):
         self.write_buffer = file.read(file5680_size - (page * self.buffer_size))
         self.write_SPI(self.FLASH_BASE_ADDR + (page + 1) * self.buffer_size, self.write_buffer, file5680_size - (page * self.buffer_size))
         time.sleep(1)
+        my_ch341.written_len += 15 * PAGE_SIZE
+
 
         # write fpga data to flash
         self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
@@ -445,10 +450,12 @@ class ch341_class(object):
             self.write_buffer = file.read(self.buffer_size)      
             self.write_SPI(self.FLASH_BASE_ADDR + (page * self.buffer_size), self.write_buffer, len(self.write_buffer))
             time.sleep(0.1)
+            my_ch341.written_len += 9 * PAGE_SIZE
+
             page += 1
             if len(self.write_buffer) != self.buffer_size:
                 break
-          
+        
         file.flush() 
         file.close()
         self.dll.CH341SetOutput(nIndex, 0x03, 0xffffffff, self.FLASH_SET_FPGA)
@@ -505,7 +512,6 @@ def ch341_thread_proc():
         elif my_ch341.status == ch341_status.EVENTVRX_GET_FW.value:  # get eventvrx firmware
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-            my_ch341.parse_eventvrx_fw(my_ch341.fw_path)
             
         elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value: # update eventvrx
             my_ch341.write_eventvrx_fw_to_flash(my_ch341.fw_path)
