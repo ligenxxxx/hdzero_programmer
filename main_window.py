@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from frame_vtx import frame_vtx
-from frame_hybrid_view import frame_hybrid_viewer
+from frame_hybrid_view import frame_hybrid_view
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 from frame_statusbar import frame_statusbar
@@ -63,7 +63,7 @@ class MyGUI:
         self._tabCtrl = ttk.Notebook(self._main_window)
         self.init_main_window()
         self.init_vtx_frame()
-        self.init_hybrid_viewer_frame()
+        self.init_hybrid_view_frame()
         self.init_event_vrx_frame()
         self._tabCtrl.select(self._vtx_frame.frame())
         self._tabCtrl.grid(row=0, column=0, sticky="nsew")
@@ -87,8 +87,8 @@ class MyGUI:
         self._vtx_frame = frame_vtx(self._tabCtrl)
         self._vtx_frame.target_combobox.bind("<<ComboboxSelected>>", self.on_select_vtx_target)
 
-    def init_hybrid_viewer_frame(self):
-        self._hybrid_viewer_frame = frame_hybrid_viewer(self._tabCtrl)
+    def init_hybrid_view_frame(self):
+        self._hybrid_view_frame = frame_hybrid_view(self._tabCtrl)
 
     def init_event_vrx_frame(self):
         self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
@@ -170,7 +170,7 @@ class MyGUI:
             
             self.notebook_disable()
             
-            self._hybrid_viewer_frame.setting_disable()
+            self._hybrid_view_frame.setting_disable()
             
             self._programmer_frame.update_button_disable()
             self._programmer_frame.version_combobox_disable()
@@ -206,7 +206,7 @@ class MyGUI:
             my_ch341.status = ch341_status.IDLE.value
 
         elif self.current_selected_tab() == 1:
-            self._hybrid_viewer_frame.setting_disable()
+            self._hybrid_view_frame.setting_disable()
             
             version_list = list(my_parse.hybrid_view_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
@@ -361,20 +361,20 @@ class MyGUI:
                     
             elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value:
                 if self.hybrid_view_is_alive == 0 and my_ch341.hybridview_connected == 1: # to connect hybird view
-                    self._hybrid_viewer_frame.setting_enable()
+                    self._hybrid_view_frame.setting_enable()
                     
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
                     
-                    self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation, 
+                    self._hybrid_view_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation, 
                         global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
                     self.hybrid_view_is_alive = 1
                 elif self.hybrid_view_is_alive == 1 and my_ch341.hybridview_connected == 0: # to disconnect hybird view
                     self.hybrid_view_is_alive = 0
                     
-                    self._hybrid_viewer_frame.reset_scale()
-                    self._hybrid_viewer_frame.setting_disable()
+                    self._hybrid_view_frame.reset_scale()
+                    self._hybrid_view_frame.setting_disable()
                     
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.local_fw_button_enable()
@@ -382,7 +382,7 @@ class MyGUI:
                     
                 elif self.hybrid_view_is_alive == 1 and my_ch341.hybridview_connected == 1: # hybird view is alive
                     # settting
-                    self._hybrid_viewer_frame.usb_heart()
+                    self._hybrid_view_frame.usb_heart()
 
         # --------------------- eventvrx -------------------------------
         if self.current_selected_tab() == 2:

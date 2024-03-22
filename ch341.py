@@ -3,7 +3,7 @@ import time
 import sys
 import os
 from ctypes import create_string_buffer
-from frame_hybrid_view import frame_hybrid_viewer
+from frame_hybrid_view import frame_hybrid_view
 import tkinter as tk
 from tkinter import ttk
 from global_var import *

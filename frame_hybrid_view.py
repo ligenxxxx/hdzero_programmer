@@ -3,11 +3,11 @@ from tkinter import ttk
 import ctypes
 import global_var
 
-class frame_hybrid_viewer:
+class frame_hybrid_view:
     def __init__(self, parent):
         self._parent = parent
         self._frame = tk.Frame(parent)
-        parent.add(self._frame, text="Hybrid Viewer")
+        parent.add(self._frame, text="Hybrid View")
         
         self.dll_name = "CH341DLL.DLL"
         self.color_background = "#303030"
@@ -78,34 +78,34 @@ class frame_hybrid_viewer:
         self.dll.CH341WriteI2C(0, self.addr_usb_write_fpga_device, addr, byte)    
         
     def write_brightness(self, b):
-            global_var.brightness = b
-            self.write_i2c(self.addr_usb_write_brightness, b)
-            #print(f"write_brightness {b}")
+        global_var.brightness = b
+        self.write_i2c(self.addr_usb_write_brightness, b)
+        #print(f"write_brightness {b}")
 
     def write_contrast(self, c):
-            global_var.contrast = c
-            self.write_i2c(self.addr_usb_write_contrast, c)
-            #print(f"write_contrast {c}")
+        global_var.contrast = c
+        self.write_i2c(self.addr_usb_write_contrast, c)
+        #print(f"write_contrast {c}")
 
     def write_saturation(self, s):
-            global_var.saturation = s
-            self.write_i2c(self.addr_usb_write_saturation, s)
-            #print(f"write_saturation {s}")
+        global_var.saturation = s
+        self.write_i2c(self.addr_usb_write_saturation, s)
+        #print(f"write_saturation {s}")
 
     def write_backlight(self, l):
-            global_var.backlight = l
-            self.write_i2c(self.addr_usb_write_backlight, l)
-            #print(f"write_backlight {l}")
+        global_var.backlight = l
+        self.write_i2c(self.addr_usb_write_backlight, l)
+        #print(f"write_backlight {l}")
 
     def write_cell_count(self, cell):
-            global_var.cell_count = cell
-            self.write_i2c(self.addr_usb_write_cell_count, cell)
-            #print(f"write_cell_count {cell}")
+        global_var.cell_count = cell
+        self.write_i2c(self.addr_usb_write_cell_count, cell)
+        #print(f"write_cell_count {cell}")
             
     def write_warning_cell_voltage(self, warning_cell):
-            global_var.warning_cell_voltage = warning_cell
-            self.write_i2c(self.addr_usb_write_warning_cell_voltage, warning_cell)
-            #print(f"write_warning_cell_voltage {warning_cell}")
+        global_var.warning_cell_voltage = warning_cell
+        self.write_i2c(self.addr_usb_write_warning_cell_voltage, warning_cell)
+        #print(f"write_warning_cell_voltage {warning_cell}")
 
     def write_setting(self, b, c, s, l, cell, warning_cell):
         """write setting from vrx.
