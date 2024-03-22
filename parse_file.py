@@ -31,9 +31,10 @@ class parse:
                         start = 1
                     elif lines[i] == "/* define VTX ID end */\n":
                         start = 0
+            return 1
         except:
-            print()
-            print("Cant't find common")
+            print("something error")
+            return 0
 
     def parse_vtx_releases(self):
         try:
@@ -57,10 +58,9 @@ class parse:
                     version = data[i]['tag_name']
                     url = data[i]['assets'][j]['browser_download_url']
                     self.vtx_info[name][version] = url
-            a = 1
+            return 1
         except:
-            print()
-            print("something error")
+            return 0
 
     def parse_event_vrx_releases(self):
         try:
@@ -76,10 +76,9 @@ class parse:
                     version = data[i]['tag_name']
                     url = data[i]['assets'][j]['browser_download_url']
                     self.event_vrx_info[version] = url
-
+            return 1
         except:
-            print()
-            print("something error")
+            return 0
 
     def parse_hybrid_view_releases(self):
         try:
@@ -95,10 +94,9 @@ class parse:
                     version = data[i]['tag_name']
                     url = data[i]['assets'][j]['browser_download_url']
                     self.hybrid_view_info[version] = url
-
+            return 1
         except:
-            print()
-            print("something error")
+            return 0
 
 
 my_parse = parse()

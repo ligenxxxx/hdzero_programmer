@@ -2,6 +2,7 @@ import requests
 import sys
 import time
 from global_var import *
+import os
 
 
 class download:
@@ -11,19 +12,25 @@ class download:
         self.url = ""
         self.save_path = ""
 
-    def download_file(self, url, save_path):
+    def download_file(self, url, save_path, clear):
         print(f"Downloading {url}")
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(save_path, "wb") as file:
-                file.write(response.content)
-            if self.status == download_status.DOWNLOAD_EXIT.value:
-                sys.exit()
-            return 1
-        else:
-            if self.status == download_status.DOWNLOAD_EXIT.value:
-                sys.exit()
-            print("Failed to download file.")
+        if clear:
+            if os.path.exists(save_path):
+                os.remove(save_path)
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open(save_path, "wb") as file:
+                    file.write(response.content)
+                if self.status == download_status.DOWNLOAD_EXIT.value:
+                    sys.exit()
+                return 1
+            else:
+                if self.status == download_status.DOWNLOAD_EXIT.value:
+                    sys.exit()
+                print("Failed to download file.")
+                return 0
+        except:
             return 0
 
 
@@ -31,27 +38,31 @@ my_download = download()
 
 
 def download_thread_proc():
-    my_download.download_file(
-        "https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "vtx_releases")
-    my_download.download_file(
-        "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "vtx_common")
-    my_download.download_file(
-        "https://api.github.com/repos/ligenxxxx/event-vrx/releases", "event_vrx_releases")
-    my_download.download_file(
-        "https://api.github.com/repos/ligenxxxx/hv/releases", "hybrid_view_releases")
+    ret0 = 0
+    ret1 = 0
+    ret2 = 0
+    ret3 = 0
+    ret0 = my_download.download_file(
+        "https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "vtx_releases", 1)
+    ret1 = my_download.download_file(
+        "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "vtx_common", 0)
+    ret2 = my_download.download_file(
+        "https://api.github.com/repos/ligenxxxx/event-vrx/releases", "event_vrx_releases", 1)
+    ret3 = my_download.download_file(
+        "https://api.github.com/repos/ligenxxxx/hv/releases", "hybrid_view_releases", 1)
     my_download.status = download_status.FILE_PARSE.value
 
     while True:
         if my_download.status == download_status.DOWNLOAD_VTX_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path):
+            if my_download.download_file(my_download.url, my_download.save_path, 1):
                 my_download.status = download_status.DOWNLOAD_VTX_FW_DONE.value
 
         elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEW_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path):
+            if my_download.download_file(my_download.url, my_download.save_path, 1):
                 my_download.status = download_status.DOWNLOAD_HYBRID_VIEW_FW_DONE.value
 
         elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path):
+            if my_download.download_file(my_download.url, my_download.save_path, 1):
                 my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW_DONE.value
 
         elif my_download.status == download_status.DOWNLOAD_EXIT.value:

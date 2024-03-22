@@ -72,7 +72,7 @@ class ch341_class(object):
         self.FLASH_SET_FPGA = 0xffff80ff
         self.FLASH_BASE_ADDR = 0x00
 
-        self.eventvrx_connected = 0
+        self.event_vrx_connected = 0
         self.buffer_size = 2560
         self.write_buffer = create_string_buffer(self.buffer_size)
 
@@ -110,7 +110,7 @@ class ch341_class(object):
         except:
             return 0
 
-    def parse_eventvrx_fw(self, fw_path):
+    def parse_event_vrx_fw(self, fw_path):
         try:
             with open(fw_path, "rb") as file:
                 file_size = os.path.getsize(fw_path)
@@ -364,8 +364,8 @@ class ch341_class(object):
                 self.read_crc += int.from_bytes(self.rdbuffer[i], byteorder='little')
         """
 
-    # ---------------- eventvrx --------------------------------
-    def connect_eventvrx(self):
+    # ---------------- event_vrx --------------------------------
+    def connect_event_vrx(self):
         if self.dll.CH341OpenDevice(nIndex) < 0:
             return 0
         else:
@@ -442,7 +442,7 @@ class ch341_class(object):
         self.dll.CH341StreamSPI4(
             nIndex, self.SELECT_FPGA_5680, 1, temp_write_buffer)
 
-    def write_eventvrx_fw_to_flash(self, path):
+    def write_event_vrx_fw_to_flash(self, path):
         file = open(path, "rb")
         file_size = os.path.getsize(path)   # file_size: 2383867
         head_size = file.read(8)
@@ -517,7 +517,7 @@ def ch341_thread_proc():
         if my_ch341.status == ch341_status.STATUS_EXIT.value:
             sys.exit()
 
-        if my_ch341.status == ch341_status.VTX_NOTCONNECTED.value:  # connect vtx
+        if my_ch341.status == ch341_status.VTX_DISCONNECTED.value:  # connect vtx
             if my_ch341.connect_vtx() == 1:
                 my_ch341.status = ch341_status.VTX_CONNECTED.value
 
@@ -559,18 +559,18 @@ def ch341_thread_proc():
             my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
 
         # ---------------------- event_vrx ------------------------------------
-        elif my_ch341.status == ch341_status.EVENTVRX_NOTCONNECTED.value:
-            if my_ch341.connect_eventvrx() == 1:
-                my_ch341.status = ch341_status.EVENTVRX_CONNECTED.value
-                my_ch341.eventvrx_connected = 1
+        elif my_ch341.status == ch341_status.EVENT_VRX_DISCONNECTED.value:
+            if my_ch341.connect_event_vrx() == 1:
+                my_ch341.status = ch341_status.EVENT_VRX_CONNECTED.value
+                my_ch341.event_vrx_connected = 1
 
-        elif my_ch341.status == ch341_status.EVENTVRX_GET_FW.value:  # get eventvrx firmware
+        elif my_ch341.status == ch341_status.EVENT_VRX_GET_FW.value:  # get event_vrx firmware
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
-        elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value:  # update eventvrx
-            my_ch341.write_eventvrx_fw_to_flash(my_ch341.fw_path)
-            print("EVENTVRX_UPDATEDONE")
-            my_ch341.status = ch341_status.EVENTVRX_UPDATEDONE.value
+        elif my_ch341.status == ch341_status.EVENT_VRX_UPDATE.value:  # update event_vrx
+            my_ch341.write_event_vrx_fw_to_flash(my_ch341.fw_path)
+            print("EVENT_VRX_UPDATEDONE")
+            my_ch341.status = ch341_status.EVENT_VRX_UPDATEDONE.value
         else:
             time.sleep(0.1)
