@@ -39,6 +39,9 @@ class MyGUI:
         self.init_statusbar()
         self._statusbar_frame.frame().grid(row=2, column=0, sticky="nsew")
         
+        self.is_update_hybrid_view = 0
+        self.hybrid_view_is_alive = 0
+        
     def init_main_window(self):
         screenWidth = self._main_window.winfo_screenwidth()
         screenHeight = self._main_window.winfo_screenheight()
@@ -65,6 +68,13 @@ class MyGUI:
         self._tabCtrl.select(self._vtx_frame.frame())
         self._tabCtrl.grid(row=0, column=0, sticky="nsew")
         self._tabCtrl.bind("<<NotebookTabChanged>>", self.on_tab_changed)
+        self.notebook_disable()
+
+    def notebook_disable(self):
+        self._tabCtrl.state(['disabled'])
+        
+    def notebook_enable(self):
+        self._tabCtrl.state(['!disabled'])
 
     def init_programmer(self):
         self._programmer_frame = frame_programmer(self._main_window)
@@ -104,6 +114,12 @@ class MyGUI:
             self._programmer_frame.update_button_enable()
             self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.target_combobox.get(
                 )][self._programmer_frame.version_combobox.get()]
+        elif self.current_selected_tab() == 1:
+            self._programmer_frame.update_button_enable()
+            self._programmer_frame.url = my_parse.hybrid_view_info[self._programmer_frame.version_combobox.get()]
+        elif self.current_selected_tab() == 2:
+            self._programmer_frame.update_button_enable()
+            self._programmer_frame.url = my_parse.event_vrx_info[self._programmer_frame.version_combobox.get()]
 
         self._statusbar_frame.status_label_set_text("FW: Online")
 
@@ -132,57 +148,85 @@ class MyGUI:
             my_ch341.fw_path = self._programmer_frame.local_file_path
             my_ch341.status = ch341_status.EVENTVRX_GET_FW.value
    
-    def on_update(self):
-        if my_ch341.connect_hybridview(0) == 1:
-            self._programmer_frame.version_combobox_disable()
-            self._programmer_frame.local_fw_button_disable()
-            self._programmer_frame.update_button_disable()
-            self._vtx_frame.target_combobox_disable()
-            self._hybrid_viewer_frame.setting_disable()
-
+    def on_update(self):        
         if self.current_selected_tab() == 0:
             my_ch341.status = ch341_status.VTX_NOTCONNECTED.value  # to connect vtx
+            
+            self.notebook_disable()
+            
+            self._vtx_frame.target_combobox_disable()
+            
+            self._programmer_frame.update_button_disable()
+            self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.local_fw_button_disable()
+            
             self._statusbar_frame.status_label_set_text("Connecting VTX ...")
             self._statusbar_frame.progress_bar_set_value(1)
             
         elif self.current_selected_tab() == 1:
-            if my_ch341.connect_hybridview(0) == 1:
-                self._statusbar_frame.status_label_set_text("Updating HybridView ...")
-                self._statusbar_frame.progress_bar_set_value(1)
-                my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
-                
+            self.is_update_hybrid_view = 1
+            my_ch341.hybridview_connected = 0
+            my_ch341.status = ch341_status.IDLE.value
+            
+            self.notebook_disable()
+            
+            self._hybrid_viewer_frame.setting_disable()
+            
+            self._programmer_frame.update_button_disable()
+            self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.local_fw_button_disable()
+            
+            self._statusbar_frame.status_label_set_text("Connecting Hybrid View ...")
+            self._statusbar_frame.progress_bar_set_value(1)
+
         elif self.current_selected_tab() == 2:
-            if my_ch341.connect_eventvrx() == 1:
-                self._statusbar_frame.status_label_set_text("Updating EventVRX ...")
-                self._statusbar_frame.progress_bar_set_value(1)
-                my_ch341.status = ch341_status.EVENTVRX_UPDATE.value
+            my_ch341.status = ch341_status.EVENTVRX_NOTCONNECTED.value
+            
+            self.notebook_disable()
+            
+            self._programmer_frame.update_button_disable()
+            self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.local_fw_button_disable()
+            self._statusbar_frame.status_label_set_text("Connecting Event VRX ...")
+            self._statusbar_frame.progress_bar_set_value(1)
 
-    def version_selection_disable(self):
-        self._programmer_frame.version_combobox.config(state="disabled")
-
-    def version_selection_enable(self):
-        self._programmer_frame.version_combobox.config(state="readonly")
-
-    def update_button_disable(self):
-        self._programmer_frame.update_button.config(state="disabled")
-
-    def update_button_enable(self):
-        self._programmer_frame.update_button.config(state="normal")            
             
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
-        self._programmer_frame.version_combobox_update_values("")
-        self._programmer_frame.version_combobox_set_default()
-        self._programmer_frame.update_button_disable()
 
         if self.current_selected_tab() == 0:
             self._vtx_frame.target_combobox_set_default()
+            
+            self._programmer_frame.version_combobox_update_values("")
+            self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
             self._programmer_frame.local_fw_button_disable()
+            self._programmer_frame.update_button_disable()
+            
+            my_ch341.status = ch341_status.IDLE.value
+
         elif self.current_selected_tab() == 1:
-            my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value   # to connect HybridView
+            self._hybrid_viewer_frame.setting_disable()
+            
+            version_list = list(my_parse.hybrid_view_info.keys())
+            self._programmer_frame.version_combobox_update_values(version_list)
+            self._programmer_frame.version_combobox_set_default()
+            self._programmer_frame.version_combobox_enable()
+            self._programmer_frame.local_fw_button_enable()
+            self._programmer_frame.update_button_disable()
+            self.hybrid_view_is_alive = 0
+            my_ch341.hybridview_connected = 0
+            
+            my_ch341.status = ch341_status.HYBRIDVIEW_CHECK_ALIVE.value   # to connect Hybrid View
         elif self.current_selected_tab() == 2:
-            my_ch341.status = ch341_status.EVENTVRX_NOTCONNECTED.value     # to connect eventvrx
+            version_list = list(my_parse.event_vrx_info.keys())
+            self._programmer_frame.version_combobox_update_values(version_list)
+            self._programmer_frame.version_combobox_enable()
+            self._programmer_frame.version_combobox_set_default()
+            self._programmer_frame.local_fw_button_enable()
+            self._programmer_frame.update_button_disable()
+            
+            my_ch341.status = ch341_status.IDLE.value
         
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
@@ -203,119 +247,190 @@ class MyGUI:
         -
         3. update event vrx
         '''
+        
+        # init
         if my_download.status == download_status.FILE_PARSE.value:
+            
             my_parse.parse_vtx_common()
             my_parse.parse_vtx_releases()
+            my_parse.parse_event_vrx_releases()
+            my_parse.parse_hybrid_view_releases()
+            self.notebook_enable()
+
             my_download.status = download_status.IDLE.value
             self._vtx_frame.target_combobox_update_value(list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
             self._statusbar_frame.status_label_set_text(" ")
-        elif my_download.status == download_status.DOWNLOAD_VTX_FW_DONE.value:
-            my_download.status = download_status.IDLE.value
-            selected_target = self._vtx_frame.target_combobox.get()
-            my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
-            my_ch341.fw_path = my_download.save_path
-            my_ch341.written_len = 0
-            my_ch341.status = ch341_status.VTX_UPDATE.value
-            self._statusbar_frame.status_label_set_text("Updating VTX ...")
-
-        if my_ch341.status == ch341_status.VTX_CONNECTED.value:  # vtx is connected
-            my_ch341.status = ch341_status.IDLE.value
-            if self._programmer_frame.mode == 0:
-                my_download.url = self._programmer_frame.url
-                my_download.save_path = "FW"
-                my_download.status = download_status.DOWNLOAD_VTX_FW.value  # download url
-                self._statusbar_frame.status_label_set_text("Download Firmware ...")
-            else:
+        
+        # vtx
+        if self.current_selected_tab() == 0:
+            if my_download.status == download_status.DOWNLOAD_VTX_FW_DONE.value:
+                my_download.status = download_status.IDLE.value
                 selected_target = self._vtx_frame.target_combobox.get()
                 my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
-                my_ch341.fw_path = self._programmer_frame.local_file_path
+                my_ch341.fw_path = my_download.save_path
+                my_ch341.written_len = 0
                 my_ch341.status = ch341_status.VTX_UPDATE.value
-        elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # refresh progress bar
-            value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
-            self._statusbar_frame.progress_bar_set_value(value)
+                self._statusbar_frame.status_label_set_text("Updating VTX ...")
 
-        elif my_ch341.status == ch341_status.VTX_UPDATEDONE.value:  # vtx update done
-            self._statusbar_frame.progress_bar_set_value(100)
-            self._programmer_frame.version_combobox_enable()
-            self._programmer_frame.local_fw_button_enable()
-            self._vtx_frame.target_combobox_enable()
-            self._programmer_frame.update_button_disable()
-            self._statusbar_frame.status_label_set_text("Update VTX Done")
-            my_ch341.status = ch341_status.IDLE.value
+            if my_ch341.status == ch341_status.VTX_CONNECTED.value:  # vtx is connected
+                my_ch341.status = ch341_status.IDLE.value
+                if self._programmer_frame.mode == 0:
+                    my_download.url = self._programmer_frame.url
+                    my_download.save_path = "FW"
+                    my_download.status = download_status.DOWNLOAD_VTX_FW.value  # download url
+                    self._statusbar_frame.status_label_set_text("Download Firmware ...")
+                else:
+                    selected_target = self._vtx_frame.target_combobox.get()
+                    my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
+                    my_ch341.fw_path = self._programmer_frame.local_file_path
+                    my_ch341.status = ch341_status.VTX_UPDATE.value
+            elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # refresh progress bar
+                value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
+                self._statusbar_frame.progress_bar_set_value(value)
+            elif my_ch341.status == ch341_status.VTX_UPDATEDONE.value:  # vtx update done
+                my_ch341.status = ch341_status.IDLE.value
+                
+                self.notebook_enable()
+                
+                self._vtx_frame.target_combobox_enable()
+                
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.update_button_disable()
+                
+                self._statusbar_frame.progress_bar_set_value(100)
+                self._statusbar_frame.status_label_set_text("Update VTX Done")
             
-        # ------------ HybridView ---------------
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:
-            if my_ch341.connect_hybridview(0) == 0:
-                self._hybrid_viewer_frame.setting_disable()
+        # ------------ HybridView ---------------   
+        if self.current_selected_tab() == 1:
+            # download
+            if my_download.status == download_status.DOWNLOAD_HYBRID_VIEW_FW_DONE.value:
+                my_download.status = download_status.IDLE.value
+                my_ch341.fw_path = my_download.save_path
+                my_ch341.written_len = 0
+                my_ch341.to_write_len =  os.path.getsize(my_ch341.fw_path)
 
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_CONNECTED.value:  # HybridView is connected
-            if self.current_selected_tab() == 1:
-                if my_ch341.hybridview_connected == 1 and my_ch341.read_setting_flag == 1:
-                    self._hybrid_viewer_frame.setting_enable()
-                    my_gui.version_selection_enable()
+                if my_ch341.parse_hybridview_fw(my_ch341.fw_path) == 1:
+                    self._statusbar_frame.status_label_set_text("Updating Hybrid View ...")
+                    my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
+                else:
+                    self._statusbar_frame.status_label_set_text("Parse FW Failed ...")
+                    self.is_update_hybrid_view = 0
+
+            # update
+            if self.is_update_hybrid_view == 1:
+                if my_ch341.status == ch341_status.IDLE.value and my_ch341.hybridview_connected == 0: # to connect hybrid view
+                        my_ch341.status = ch341_status.HYBRIDVIEW_CHECK_ALIVE.value
+                elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value and my_ch341.hybridview_connected == 1: # hybrid view is connected
+                    my_ch341.status = ch341_status.IDLE.value
+                    if self._programmer_frame.mode == 0:
+                        my_download.url = self._programmer_frame.url
+                        my_download.save_path = "FW"
+                        my_download.status = download_status.DOWNLOAD_HYBRID_VIEW_FW.value  # download url
+                        self._statusbar_frame.status_label_set_text("Download Firmware ...")
+                    else:
+                        my_ch341.written_len = 0
+                        my_ch341.to_write_len =  os.path.getsize(my_ch341.fw_path)
+                        if my_ch341.parse_hybridview_fw(my_ch341.fw_path) == 1:
+                            self._statusbar_frame.status_label_set_text("Updating Hybrid View ...")
+                            my_ch341.status = ch341_status.HYBRIDVIEW_UPDATE.value
+                        else:
+                            self._statusbar_frame.status_label_set_text("Parse FW Failed ...")
+                            self.is_update_hybrid_view = 0
+                        
+                elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value:  # refresh progress bar
+                    value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
+                    print("progress_bar_value: ", value)
+                    self._statusbar_frame.progress_bar_set_value(value)
+                    
+                elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATEDONE.value:  # HybridView update done
+                    self.is_update_hybrid_view = 0
+                    my_ch341.hybridview_connected = 0
+                    my_ch341.status = ch341_status.HYBRIDVIEW_CHECK_ALIVE.value
+                    
+                    self.notebook_enable()
+                    
+                    self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.local_fw_button_enable()
-                    my_ch341.read_setting()
+                    self._programmer_frame.update_button_disable()
+                    
+                    self._statusbar_frame.progress_bar_set_value(100)
+                    self._statusbar_frame.status_label_set_text("Update HybridView Done")
+                    
+            elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value:
+                if self.hybrid_view_is_alive == 0 and my_ch341.hybridview_connected == 1: # to connect hybird view
+                    self._hybrid_viewer_frame.setting_enable()
+                    
+                    self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.update_button_disable()
+                    
                     self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation, 
                         global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
-                    my_ch341.read_setting_flag = 0
-                else:
-                    if my_ch341.connect_hybridview(0) == 0:
-                        self._hybrid_viewer_frame.setting_disable()                    
-                        my_gui.version_selection_disable()
-                        self._programmer_frame.local_fw_button_disable()
-                        my_ch341.hybridview_connected = 0
-                        my_ch341.status = ch341_status.HYBRIDVIEW_NOTCONNECTED.value
-                        my_ch341.read_setting_flag = 1
-                                    
-                self._hybrid_viewer_frame.usb_heart()
-                
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value:  # refresh progress bar
-            value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
-            print("progress_bar_value: ", value)
-            self._statusbar_frame.progress_bar_set_value(value)
-
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATEDONE.value:  # HybridView update done
-            self._statusbar_frame.progress_bar_set_value(100)
-            self._programmer_frame.version_combobox_enable()
-            self._programmer_frame.local_fw_button_enable()
-            self._vtx_frame.target_combobox_enable()
-            self._programmer_frame.update_button_disable()
-            self._statusbar_frame.status_label_set_text("Update HybridView Done")            
-            my_ch341.status = ch341_status.IDLE.value
+                    self.hybrid_view_is_alive = 1
+                elif self.hybrid_view_is_alive == 1 and my_ch341.hybridview_connected == 0: # to disconnect hybird view
+                    self.hybrid_view_is_alive = 0
+                    
+                    self._hybrid_viewer_frame.reset_scale()
+                    self._hybrid_viewer_frame.setting_disable()
+                    
+                    self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.update_button_disable()
+                    
+                elif self.hybrid_view_is_alive == 1 and my_ch341.hybridview_connected == 1: # hybird view is alive
+                    # settting
+                    self._hybrid_viewer_frame.usb_heart()
 
         # --------------------- eventvrx -------------------------------
-        elif my_ch341.status == ch341_status.EVENTVRX_NOTCONNECTED.value:
-            if my_ch341.connect_eventvrx() == 0:
-                my_gui.version_selection_disable()
-                self._programmer_frame.local_fw_button_disable()
+        if self.current_selected_tab() == 2:
+            # download
+            if my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_DONE.value:
+                my_download.status = download_status.IDLE.value
+                my_ch341.fw_path = my_download.save_path
+                my_ch341.written_len = 0
+                my_ch341.to_write_len =  os.path.getsize(my_ch341.fw_path)
 
-        elif my_ch341.status == ch341_status.EVENTVRX_CONNECTED.value:  # eventvrx is connected
-            if self.current_selected_tab() == 2:
-                if my_ch341.eventvrx_connected == 1:
-                    my_gui.version_selection_enable()
-                    self._programmer_frame.local_fw_button_enable()
+                if my_ch341.parse_eventvrx_fw(my_ch341.fw_path) == 1:
+                    self._statusbar_frame.status_label_set_text("Updating Hybrid View ...")
+                    my_ch341.status = ch341_status.EVENTVRX_UPDATE.value
                 else:
-                    if my_ch341.connect_eventvrx() == 0:
-                        my_gui.version_selection_disable()
-                        self._programmer_frame.local_fw_button_disable()
-                        my_ch341.eventvrx_connected = 0
-                        my_ch341.status = ch341_status.EVENTVRX_NOTCONNECTED.value
-                                                    
-        elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value:  # eventvrx refresh progress bar
-            value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
-            #print("progress_bar_value: ", value)
-            self._statusbar_frame.progress_bar_set_value(value)
+                    self._statusbar_frame.status_label_set_text("Parse FW Failed ...")
+                    self.is_update_hybrid_view = 0
+            
+            # update
+            if my_ch341.status == ch341_status.EVENTVRX_CONNECTED.value:  # eventvrx is connected
+                my_ch341.status = ch341_status.IDLE.value
+                if self._programmer_frame.mode == 0:
+                    my_download.url = self._programmer_frame.url
+                    my_download.save_path = "FW"
+                    my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW.value  # download url
+                    self._statusbar_frame.status_label_set_text("Download Firmware ...")
+                else:
+                    my_ch341.written_len = 0
+                    my_ch341.to_write_len =  os.path.getsize(my_ch341.fw_path)
+                    if my_ch341.parse_eventvrx_fw(my_ch341.fw_path) == 1:
+                        self._statusbar_frame.status_label_set_text("Updating Event VRX ...")
+                        my_ch341.status = ch341_status.EVENTVRX_UPDATE.value
+                    else:
+                        self._statusbar_frame.status_label_set_text("Parse FW Failed ...")
+                        self.is_update_hybrid_view = 0
+                                                        
+            elif my_ch341.status == ch341_status.EVENTVRX_UPDATE.value:  # eventvrx refresh progress bar
+                value = (my_ch341.written_len / my_ch341.to_write_len * 100) % 101
+                print("progress_bar_value: ", value)
+                self._statusbar_frame.progress_bar_set_value(value)
 
-        elif my_ch341.status == ch341_status.EVENTVRX_UPDATEDONE.value:  # eventvrx update done
-            self._statusbar_frame.progress_bar_set_value(100)
-            self._programmer_frame.version_combobox_enable()
-            self._programmer_frame.local_fw_button_enable()
-            self._vtx_frame.target_combobox_enable()
-            self._programmer_frame.update_button_disable()
-            self._statusbar_frame.status_label_set_text("Update EventVRX Done")            
-            my_ch341.status = ch341_status.IDLE.value
+            elif my_ch341.status == ch341_status.EVENTVRX_UPDATEDONE.value:  # eventvrx update done
+                self._statusbar_frame.progress_bar_set_value(100)
+                self._statusbar_frame.status_label_set_text("Update EventVRX Done")  
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.update_button_disable()
+                self.notebook_enable()          
+                my_ch341.status = ch341_status.IDLE.value
 
         self._main_window.after(100, self.refresh)
 

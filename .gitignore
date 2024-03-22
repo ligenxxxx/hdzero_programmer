@@ -3,6 +3,8 @@ build
 dist
 vtx_common
 vtx_releases
+event_vrx_releases
+hybrid_view_releases
 FW
 HYBRID_VIEW.bin
 Readme.txt

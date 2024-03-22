@@ -5,8 +5,12 @@ class parse:
     def __init__(self):
         self.vtx_releases_path = "vtx_releases"
         self.vtx_common_path = "vtx_common"
+        self.event_vrx_releases_path = "event_vrx_releases"
+        self.hybrid_view_releases_path = "hybrid_view_releases"
 
         self.vtx_info = {}
+        self.event_vrx_info = {}
+        self.hybrid_view_info = {}
 
     def parse_vtx_common(self):
         try:
@@ -53,6 +57,44 @@ class parse:
                     version = data[i]['tag_name']
                     url = data[i]['assets'][j]['browser_download_url']
                     self.vtx_info[name][version] = url
+            a = 1
+        except:
+            print()
+            print("something error")
+
+    def parse_event_vrx_releases(self):
+        try:
+            with open(self.event_vrx_releases_path) as f:
+                data = json.load(f)
+
+            for i in range(len(data)):
+                link_list = []
+                for j in range(len(data[i]['assets'])):
+                    link_list.append(data[i]['assets'][j]
+                                     ['browser_download_url'])
+
+                    version = data[i]['tag_name']
+                    url = data[i]['assets'][j]['browser_download_url']
+                    self.event_vrx_info[version] = url
+
+        except:
+            print()
+            print("something error")
+
+    def parse_hybrid_view_releases(self):
+        try:
+            with open(self.hybrid_view_releases_path) as f:
+                data = json.load(f)
+
+            for i in range(len(data)):
+                link_list = []
+                for j in range(len(data[i]['assets'])):
+                    link_list.append(data[i]['assets'][j]
+                                     ['browser_download_url'])
+
+                    version = data[i]['tag_name']
+                    url = data[i]['assets'][j]['browser_download_url']
+                    self.hybrid_view_info[version] = url
 
         except:
             print()

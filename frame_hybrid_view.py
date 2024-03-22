@@ -25,16 +25,22 @@ class frame_hybrid_viewer:
         
         self.brightness_min = 0
         self.brightness_max = 254
+        self.brightness_default = 128
         self.contrast_min = 0
         self.contrast_max = 254
+        self.contrast_default = 64
         self.saturation_min = 0
         self.saturation_max = 254
+        self.saturation_default = 64
         self.backlight_min = 1
         self.backlight_max = 100
+        self.backlight_default = 100
         self.cell_count_min = 1     # 1 auto 
         self.cell_count_max = 5
+        self.cell_count_default = 1
         self.warning_cell_voltage_min = 28
         self.warning_cell_voltage_max = 42
+        self.warning_cell_voltage_default = 28
 
         self.brightness_scale = 0
         self.contrast_scale = 0
@@ -106,6 +112,19 @@ class frame_hybrid_viewer:
         usually used for sync vrx setting.
         NOTE: Must run after setting_enable
         """
+        if b < self.brightness_min or b > self.brightness_max:
+            b = self.brightness_default
+        if c < self.contrast_min or c > self.contrast_max:
+            c = self.contrast_default
+        if s < self.saturation_min or s > self.saturation_max:
+            s = self.saturation_default
+        if l < self.backlight_min or l > self.backlight_max:
+            l = self.backlight_default
+        if cell < self.cell_count_min or cell > self.cell_count_max:
+            cell = self.cell_count_default
+        if warning_cell < self.warning_cell_voltage_min or warning_cell > self.warning_cell_voltage_max:
+            warning_cell = self.warning_cell_voltage_default
+        
         self.write_brightness(b)
         self.write_contrast(c)
         self.write_saturation(s)
@@ -146,7 +165,24 @@ class frame_hybrid_viewer:
         self.backlight_scale.configure(state="normal")
         self.cell_count_scale.configure(state="normal")
         self.warning_cell_voltage_scale.configure(state="normal")
+    
+    def reset_scale(self):
+        self.brightness_scale.set(self.brightness_min)
+        self.contrast_scale.set(self.contrast_min)
+        self.saturation_scale.set(self.saturation_min)
+        self.backlight_scale.set(self.backlight_min)
+        self.cell_count_scale.set(self.cell_count_min)
+        self.warning_cell_voltage_scale.set(self.warning_cell_voltage_min)
+
         
+        self.brightness_label.config(text=f"{int(float(self.brightness_min))}")
+        self.brightness_label.config(text=f"{int(float(self.contrast_min))}")
+        self.saturation_label.config(text=f"{int(float(self.saturation_min))}")
+        self.backlight_label.config(text=f"{int(float(self.brightness_min))}")
+
+        self.on_cell_count_scale_changed(self.cell_count_min)
+        self.on_warning_cell_voltage_scale_changed(self.warning_cell_voltage_min)
+
     def frame(self):
         return self._frame
 

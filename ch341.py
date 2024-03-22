@@ -80,14 +80,35 @@ class ch341_class(object):
             print("please install driver")
             
     def parse_hybridview_fw(self, fw_path):
-        with open(fw_path, "rb") as file:
-            file.seek(2)
-            self.fw_5680_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_fpga_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_8339_size = int.from_bytes(file.read(4), byteorder='little')
-            self.fw_5680_buf = file.read(self.fw_5680_size)
-            self.fw_fpga_buf = file.read(self.fw_fpga_size)
-            self.fw_8339_buf = file.read(self.fw_8339_size)
+        try:
+            with open(fw_path, "rb") as file:
+                file.seek(2)
+                self.fw_5680_size = int.from_bytes(file.read(4), byteorder='little')
+                self.fw_fpga_size = int.from_bytes(file.read(4), byteorder='little')
+                self.fw_8339_size = int.from_bytes(file.read(4), byteorder='little')
+                if self.fw_5680_size < 65536 and self.fw_fpga_size < 1000000 and self.fw_8339_size < 10000000:
+                    self.fw_5680_buf = file.read(self.fw_5680_size)
+                    self.fw_fpga_buf = file.read(self.fw_fpga_size)
+                    self.fw_8339_buf = file.read(self.fw_8339_size)
+                    return 1
+                else:
+                    return 0
+        except:
+            return 0
+    def parse_eventvrx_fw(self, fw_path):
+        try:
+            with open(fw_path, "rb") as file:
+                file_size = os.path.getsize(fw_path)
+                head_size = file.read(8)
+                self.fw_5680_size = int(head_size) - 2560
+                self.fw_fpga_size = file_size - 8 - self.fw_5680_size
+                if self.fw_5680_size < 65536 and self.fw_fpga_size < 10000000:
+                    return 1
+                else:
+                    return 0
+        except:
+            return 0
+        
             
     def ch341read_i2c(self, addr):
         self.dll.CH341ReadI2C(0, self.addr_fpga_device, addr, self.iobuffer)
@@ -101,9 +122,7 @@ class ch341_class(object):
         global_var.cell_count = self.ch341read_i2c(self.addr_cell_count)
         global_var.warning_cell_voltage = self.ch341read_i2c(self.addr_warning_cell_voltage)
         fpga_version = self.ch341read_i2c(0xff)
-        #print(f"bri:{global_var.brightness:d} con:{global_var.contrast:d}\
-        #    sat:{global_var.saturation:d} bac:{global_var.backlight:d}\
-        #    cell:{global_var.cell_count:d} warning_cell:{global_var.warning_cell_voltage:d} fpga_version:{fpga_version:x}")
+        print(f"cell:{global_var.cell_count:d} warning_cell:{global_var.warning_cell_voltage:d} fpga_version:0x{fpga_version:2x}")
 
     def set_stream(self, cs):
         if cs == True:
@@ -481,11 +500,15 @@ def ch341_thread_proc():
             my_ch341.status = ch341_status.VTX_UPDATEDONE.value
             
         #-------- HybridView ----------------- 
-        elif  my_ch341.status == ch341_status.HYBRIDVIEW_NOTCONNECTED.value:     #connect HybridView
-            if my_ch341.connect_hybridview(2) == 1:
-                my_ch341.status = ch341_status.HYBRIDVIEW_CONNECTED.value
-                my_ch341.hybridview_connected = 1
-                my_ch341.read_setting_flag = 1    
+        elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value: # check hybrid view is alive
+            if my_ch341.connect_hybridview(0.35) == 1:
+                if my_ch341.hybridview_connected == 0:
+                    time.sleep(0.5)
+                    my_ch341.read_setting()
+                    my_ch341.hybridview_connected = 1
+            else:
+                my_ch341.hybridview_connected = 0
+
 
         elif my_ch341.status == ch341_status.HYBRIDVIEW_GET_FW.value:  # get HybridView firmware
             my_ch341.written_len = 0
