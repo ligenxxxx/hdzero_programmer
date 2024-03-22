@@ -9,6 +9,7 @@ from tkinter import ttk
 from global_var import *
 from ctypes import *
 import global_var
+import subprocess
 
 
 class ch341_class(object):
@@ -78,8 +79,17 @@ class ch341_class(object):
         try:
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
-            print("please install driver")
-
+            command = "driver\SETUP.EXE \S"
+            print("Need to install ch341 driver")
+            print("Installing ...")
+            subprocess.run(command, shell=True, capture_output=True, text=True)
+            print("done")
+            time.sleep(1)
+            try:
+                self.dll = ctypes.WinDLL(self.dll_name)
+            except:
+                a = 1
+            
     def parse_hybridview_fw(self, fw_path):
         try:
             with open(fw_path, "rb") as file:

@@ -67,7 +67,7 @@ class frame_hybrid_view:
         try:
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
-            print("please install driver")
+            print("Please check ch341 driver")
 
     def usb_heart(self):
         self.heart_cnt += 1
