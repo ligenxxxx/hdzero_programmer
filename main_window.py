@@ -24,8 +24,8 @@ class MyGUI:
 
     def __init__(self, init_window_name):
         self.winWidth = 640
-        self.winHeight = 320  # 280
-        self.title = "HDZero Programmer"
+        self.winHeight = 320
+        self.title = "HDZero Programmer " + "V0.2.0"
 
         self._programmer_frame = None
         self._main_window = init_window_name

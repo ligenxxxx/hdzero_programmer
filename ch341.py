@@ -90,7 +90,7 @@ class ch341_class(object):
                     file.read(4), byteorder='little')
                 self.fw_8339_size = int.from_bytes(
                     file.read(4), byteorder='little')
-                if self.fw_5680_size < 65536 and self.fw_fpga_size < 1000000 and self.fw_8339_size < 10000000:
+                if self.fw_5680_size < 65536 and self.fw_fpga_size < 10000000 and self.fw_8339_size < 10000000:
                     self.fw_5680_buf = file.read(self.fw_5680_size)
                     self.fw_fpga_buf = file.read(self.fw_fpga_size)
                     self.fw_8339_buf = file.read(self.fw_8339_size)
