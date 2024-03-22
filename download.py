@@ -56,14 +56,20 @@ def download_thread_proc():
         if my_download.status == download_status.DOWNLOAD_VTX_FW.value:
             if my_download.download_file(my_download.url, my_download.save_path, 1):
                 my_download.status = download_status.DOWNLOAD_VTX_FW_DONE.value
+            else:
+                my_download.status = download_status.DOWNLOAD_VTX_FW_FAILED.value
 
         elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEW_FW.value:
             if my_download.download_file(my_download.url, my_download.save_path, 1):
+                my_download.status = download_status.DOWNLOAD_HYBRID_VIEW_FW_DONE.value
+            else:
                 my_download.status = download_status.DOWNLOAD_HYBRID_VIEW_FW_DONE.value
 
         elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW.value:
             if my_download.download_file(my_download.url, my_download.save_path, 1):
                 my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW_DONE.value
+            else:
+                my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value
 
         elif my_download.status == download_status.DOWNLOAD_EXIT.value:
             sys.exit()

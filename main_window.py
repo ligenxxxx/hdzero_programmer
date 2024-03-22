@@ -284,6 +284,23 @@ class MyGUI:
                 my_ch341.written_len = 0
                 my_ch341.status = ch341_status.VTX_UPDATE.value
                 self._statusbar_frame.status_label_set_text("Updating VTX ...")
+            elif my_download.status == download_status.DOWNLOAD_VTX_FW_FAILED.value:
+                my_download.status = download_status.IDLE.value
+                my_ch341.status = ch341_status.IDLE.value
+
+                self.notebook_enable()
+
+                self._vtx_frame.target_combobox_enable()
+
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.version_combobox_set_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.update_button_disable()
+
+                self._statusbar_frame.progress_bar_set_value(0)
+                self._statusbar_frame.status_label_set_text("Network error")
+                
+            
             if my_ch341.status == ch341_status.VTX_CONNECTED.value:  # vtx is connected
                 my_ch341.status = ch341_status.IDLE.value
                 if self._programmer_frame.mode == 0:
@@ -312,6 +329,7 @@ class MyGUI:
                 self._vtx_frame.target_combobox_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
 
@@ -374,6 +392,7 @@ class MyGUI:
                     self.notebook_enable()
 
                     self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
 
@@ -451,14 +470,19 @@ class MyGUI:
                 self._statusbar_frame.progress_bar_set_value(value)
 
             elif my_ch341.status == ch341_status.EVENT_VRX_UPDATEDONE.value:  # event_vrx update done
+                my_ch341.status = ch341_status.IDLE.value
+                
+                self.notebook_enable()
+                
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.version_combobox_set_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.update_button_disable()
+                
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._statusbar_frame.status_label_set_text(
                     "Update Event VRX Done")
-                self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.update_button_disable()
-                self.notebook_enable()
-                my_ch341.status = ch341_status.IDLE.value
+                
 
         self._main_window.after(100, self.refresh)
 
