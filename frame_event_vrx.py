@@ -6,6 +6,6 @@ class frame_event_vrx:
         self._parent = parent
         self._frame = tk.Frame(parent)
         parent.add(self._frame, text="Event VRX")
-        
+
     def frame(self):
         return self._frame
