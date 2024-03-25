@@ -72,7 +72,6 @@ class ch341_class(object):
         self.FLASH_SET_FPGA = 0xffff80ff
         self.FLASH_BASE_ADDR = 0x00
 
-        self.event_vrx_connected = 0
         self.buffer_size = 2560
         self.write_buffer = create_string_buffer(self.buffer_size)
 
@@ -89,7 +88,7 @@ class ch341_class(object):
                 self.dll = ctypes.WinDLL(self.dll_name)
             except:
                 a = 1
-            
+
     def parse_hybridview_fw(self, fw_path):
         try:
             with open(fw_path, "rb") as file:
@@ -524,10 +523,14 @@ def ch341_thread_proc():
         elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # update vtx
             my_ch341.written_len = 0
             my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-            my_ch341.flash_erase_vtx()
-            my_ch341.flash_write_target_id()
-            my_ch341.flash_write_fw()
-            my_ch341.status = ch341_status.VTX_UPDATEDONE.value
+
+            if my_ch341.to_write_len == 0 or my_ch341.to_write_len >= 65536:  # check fw size
+                my_ch341.status = ch341_status.VTX_FW_ERROR.value
+            else:
+                my_ch341.flash_erase_vtx()
+                my_ch341.flash_write_target_id()
+                my_ch341.flash_write_fw()
+                my_ch341.status = ch341_status.VTX_UPDATEDONE.value
 
         # -------- HybridView -----------------
         elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value:  # check hybrid view is alive
@@ -539,38 +542,43 @@ def ch341_thread_proc():
             else:
                 my_ch341.hybridview_connected = 0
 
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_GET_FW.value:  # get HybridView firmware
-            my_ch341.written_len = 0
-            my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-            my_ch341.parse_hybridview_fw(my_ch341.fw_path)
-
         elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value:  # update HybridView
-            my_ch341.flash_switch0()
-            my_ch341.fw_write_to_flash(
-                my_ch341.fw_5680_buf, my_ch341.fw_5680_size)
-            my_ch341.flash_switch1()
-            my_ch341.fw_write_to_flash(
-                my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
-            my_ch341.flash_switch2()
-            my_ch341.fw_write_to_flash(
-                my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
-            my_ch341.dll.CH341CloseDevice(0)
-            my_ch341.flash_release()
-            my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
+            # check fw size
+            if my_ch341.parse_hybridview_fw(my_ch341.fw_path) == 0:
+                my_ch341.status = ch341_status.HYBRIDVIEW_FW_ERROR.value
+            else:
+                my_ch341.flash_switch0()
+                my_ch341.fw_write_to_flash(
+                    my_ch341.fw_5680_buf, my_ch341.fw_5680_size)
+                my_ch341.flash_switch1()
+                my_ch341.fw_write_to_flash(
+                    my_ch341.fw_fpga_buf, my_ch341.fw_fpga_size)
+                my_ch341.flash_switch2()
+                my_ch341.fw_write_to_flash(
+                    my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
+                my_ch341.dll.CH341CloseDevice(0)
+                my_ch341.flash_release()
+                my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
 
         # ---------------------- event_vrx ------------------------------------
-        elif my_ch341.status == ch341_status.EVENT_VRX_DISCONNECTED.value:
+        elif my_ch341.status == ch341_status.EVENT_VRX_DISCONNECTED.value:  # connect event vrx
             if my_ch341.connect_event_vrx() == 1:
                 my_ch341.status = ch341_status.EVENT_VRX_CONNECTED.value
-                my_ch341.event_vrx_connected = 1
-
-        elif my_ch341.status == ch341_status.EVENT_VRX_GET_FW.value:  # get event_vrx firmware
-            my_ch341.written_len = 0
-            my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
         elif my_ch341.status == ch341_status.EVENT_VRX_UPDATE.value:  # update event_vrx
-            my_ch341.write_event_vrx_fw_to_flash(my_ch341.fw_path)
-            print("EVENT_VRX_UPDATEDONE")
-            my_ch341.status = ch341_status.EVENT_VRX_UPDATEDONE.value
+            file = open(my_ch341.fw_path, "rb")
+            file_size = os.path.getsize(my_ch341.fw_path)
+            head_size = file.read(8)
+            try:
+                file5680_size = int(head_size) - 2560
+            except:
+                my_ch341.status = ch341_status.EVENT_VRX_FW_ERROR.value
+                
+            file.close()
+            if file_size > 10000000 or file5680_size >= 65536:
+                my_ch341.status = ch341_status.EVENT_VRX_FW_ERROR.value
+            else:
+                my_ch341.write_event_vrx_fw_to_flash(my_ch341.fw_path)
+                my_ch341.status = ch341_status.EVENT_VRX_UPDATEDONE.value
         else:
             time.sleep(0.1)
