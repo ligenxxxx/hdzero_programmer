@@ -413,7 +413,7 @@ class MyGUI:
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
 
-                    self._statusbar_frame.progress_bar_set_value(0)
+                    self._statusbar_frame.progress_bar_set_value(100)
                     self._statusbar_frame.status_label_set_text(
                         "Update HybridView Done")
 
@@ -459,6 +459,20 @@ class MyGUI:
                     self._statusbar_frame.status_label_set_text(
                         "Parse FW Failed ...")
                     self.is_update_hybrid_view = 0
+            elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value:
+                my_download.status = download_status.IDLE.value
+                my_ch341.status = ch341_status.IDLE.value
+
+                self.notebook_enable()
+
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.version_combobox_set_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.update_button_disable()
+
+                self._statusbar_frame.progress_bar_set_value(0)
+                self._statusbar_frame.status_label_set_text(
+                    "Network error")
 
             # update
             if my_ch341.status == ch341_status.EVENT_VRX_CONNECTED.value:  # event_vrx is connected
