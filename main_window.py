@@ -84,6 +84,7 @@ class MyGUI:
         self._programmer_frame = frame_programmer(self._main_window)
         self._programmer_frame.version_combobox.bind(
             "<<ComboboxSelected>>",  self.on_select_version)
+        self._programmer_frame.online_fw_button["command"] = self._programmer_frame.online_fw_button_hidden
         self._programmer_frame.local_fw_button["command"] = self.on_load_local_firmware
         self._programmer_frame.update_button["command"] = self.on_update
 
@@ -107,10 +108,12 @@ class MyGUI:
         version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
         self._programmer_frame.version_combobox_update_values(version_list)
         self._programmer_frame.version_combobox_set_default()
+        self._programmer_frame.online_fw_button_enable()
         self._programmer_frame.version_combobox_enable()
         self._programmer_frame.local_fw_button_enable()
 
     def on_select_version(self, event):
+        self._programmer_frame.online_fw_button_hidden()
         selected_version = self._programmer_frame.version_combobox.get()
         print("Selected:", selected_version)
         self._programmer_frame.mode = 0
@@ -131,6 +134,7 @@ class MyGUI:
         self._statusbar_frame.status_label_set_text("FW: Online")
 
     def on_load_local_firmware(self):
+        self._programmer_frame.online_fw_button_show()
         self._programmer_frame.select_local_file()
 
         if self._programmer_frame.local_file_path == '':
@@ -207,8 +211,10 @@ class MyGUI:
             self._programmer_frame.version_combobox_update_values("")
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
+            self._programmer_frame.online_fw_button_disable()
             self._programmer_frame.local_fw_button_disable()
             self._programmer_frame.update_button_disable()
+            self._programmer_frame.online_fw_button_show()
 
             my_ch341.status = ch341_status.IDLE.value
 
@@ -218,9 +224,11 @@ class MyGUI:
             version_list = list(my_parse.hybrid_view_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
             self._programmer_frame.version_combobox_set_default()
+            self._programmer_frame.online_fw_button_enable()
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_disable()
+            self._programmer_frame.online_fw_button_show()
             self.hybrid_view_is_alive = 0
             my_ch341.hybridview_connected = 0
 
@@ -228,12 +236,16 @@ class MyGUI:
         elif self.current_selected_tab() == 2:
             version_list = list(my_parse.event_vrx_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
+            self._programmer_frame.online_fw_button_enable()
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_disable()
+            self._programmer_frame.online_fw_button_show()
 
             my_ch341.status = ch341_status.IDLE.value
+
+        self._programmer_frame.deselect()
 
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
@@ -328,9 +340,11 @@ class MyGUI:
                 self._vtx_frame.target_combobox_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text("Network error")
@@ -364,11 +378,13 @@ class MyGUI:
                 self._vtx_frame.target_combobox_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
+                self._programmer_frame.online_fw_button_show()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
-
                 self._statusbar_frame.progress_bar_set_value(100)
+                self._programmer_frame.deselect()
                 self._statusbar_frame.status_label_set_text("Update VTX Done")
             elif my_ch341.status == ch341_status.VTX_FW_ERROR.value:  # vtx fw error
                 my_ch341.status = ch341_status.IDLE.value
@@ -378,9 +394,11 @@ class MyGUI:
                 self._vtx_frame.target_combobox_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text("FW Error ...")
@@ -406,9 +424,11 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
@@ -447,15 +467,17 @@ class MyGUI:
                     self.notebook_enable()
 
                     self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
+                    self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(100)
                     self._statusbar_frame.status_label_set_text(
                         "Update HybridView Done")
 
-                elif my_ch341.status == ch341_status.HYBRIDVIEW_FW_ERROR.value:  # update done
+                elif my_ch341.status == ch341_status.HYBRIDVIEW_FW_ERROR.value:  # fw error
                     self.is_update_hybrid_view = 0
                     my_ch341.hybridview_connected = 0
                     my_ch341.status = ch341_status.HYBRIDVIEW_CHECK_ALIVE.value
@@ -463,9 +485,11 @@ class MyGUI:
                     self.notebook_enable()
 
                     self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
+                    self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(0)
                     self._statusbar_frame.status_label_set_text(
@@ -476,6 +500,7 @@ class MyGUI:
                     self._hybrid_view_frame.setting_enable()
 
                     self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
 
@@ -489,6 +514,7 @@ class MyGUI:
                     self._hybrid_view_frame.setting_disable()
 
                     self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.update_button_disable()
 
@@ -515,9 +541,11 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
@@ -550,9 +578,11 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._statusbar_frame.status_label_set_text(
@@ -563,9 +593,11 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
