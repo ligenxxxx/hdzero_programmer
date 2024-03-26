@@ -8,25 +8,16 @@ class frame_statusbar:
         self._frame = tk.Frame(parent)
 
         self._frame.grid_columnconfigure(0, weight=1)
-        self._frame.grid_columnconfigure(1, weight=0)
         self._frame.grid_rowconfigure(0, weight=1)
 
-        self.init_status_label()
         self.init_progress_bar()
-        self.progress_bar_set_value(100)
+        self.progress_bar_set_value(0)
 
     def frame(self):
         return self._frame
 
-    def init_status_label(self):
-        font = ("")
-        self.label = ttk.Label(
-            self._frame, text=" ", border=2, relief='ridge', width=30)
-        self.label.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
-
     def status_label_set_text(self, text):
-        self.label["text"] = text
-
+        pass
     def init_progress_bar(self):
         self.bar = ttk.Progressbar(
             self._frame, orient="horizontal", mode="determinate")
