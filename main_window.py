@@ -45,8 +45,6 @@ class MyGUI:
         self.hybrid_view_is_alive = 0
 
         self.downloading_window_status = 0
-        
-        self.network_error = 0
 
     def init_main_window(self):
         screenWidth = self._main_window.winfo_screenwidth()
@@ -246,11 +244,11 @@ class MyGUI:
         screenWidth = self._main_window.winfo_screenwidth()
         screenHeight = self._main_window.winfo_screenheight()
         x = int((screenWidth - 300) / 2)
-        y = int((screenHeight - 100) / 2)
+        y = int((screenHeight - 50) / 2)
 
         self.downloading_window = tk.Toplevel()
         self.downloading_window.geometry("%sx%s+%s+%s" %
-                                         (300, 100, x, y))
+                                         (300, 50, x, y))
         self.downloading_window.resizable(False, False)
         
         self.downloading_window.title("Downloading")
@@ -259,12 +257,6 @@ class MyGUI:
         self.downloading_label.pack(pady=10)
 
         self.downloading_window_status = 1
-        
-        self.downloading_button = tk.Button(self.downloading_window, text="OK", command=self.on_close_downloading_firmware_window)
-        self.downloading_button.pack(pady=1)
-        self.downloading_button.config(state = "disabled")
-        
-        
         self.downloading_window.overrideredirect(True)
         
         self._main_window.attributes('-disable', True)
@@ -276,10 +268,6 @@ class MyGUI:
         self.downloading_window.destroy()
         self.notebook_enable()
         self._main_window.focus_force()
-    
-    def on_close_downloading_firmware_window(self):
-        self.destroy_downloading_firmware_window()
-        self._main_window.attributes('-disable', False)
         
 
     def refresh(self):
@@ -312,12 +300,12 @@ class MyGUI:
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
             if ret0 == 0 or ret1 == 0 or ret2 == 0:
-                self.network_error = 1
-                self.set_downloading_label("Download firmware list failed, Press OK to continue")
-                self.downloading_button.config(state = "normal")
-            else:
-                self.destroy_downloading_firmware_window()
-                self._main_window.attributes('-disable', False)
+                self.set_downloading_label("Download firmware list failed")
+                self._main_window.update()
+                time.sleep(1)
+            
+            self.destroy_downloading_firmware_window()
+            self._main_window.attributes('-disable', False)
             
 
         # vtx
