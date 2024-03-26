@@ -45,6 +45,8 @@ class MyGUI:
         self.hybrid_view_is_alive = 0
 
         self.downloading_window_status = 0
+        
+        self.network_error = 0
 
     def init_main_window(self):
         screenWidth = self._main_window.winfo_screenwidth()
@@ -244,11 +246,11 @@ class MyGUI:
         screenWidth = self._main_window.winfo_screenwidth()
         screenHeight = self._main_window.winfo_screenheight()
         x = int((screenWidth - 300) / 2)
-        y = int((screenHeight - 60) / 2)
+        y = int((screenHeight - 100) / 2)
 
         self.downloading_window = tk.Toplevel()
         self.downloading_window.geometry("%sx%s+%s+%s" %
-                                         (300, 60, x, y))
+                                         (300, 100, x, y))
         self.downloading_window.resizable(False, False)
         
         self.downloading_window.title("Downloading")
@@ -258,6 +260,13 @@ class MyGUI:
 
         self.downloading_window_status = 1
         
+        self.downloading_button = tk.Button(self.downloading_window, text="OK", command=self.on_close_downloading_firmware_window)
+        self.downloading_button.pack(pady=1)
+        self.downloading_button.config(state = "disabled")
+        
+        
+        self.downloading_window.overrideredirect(True)
+        
         self._main_window.attributes('-disable', True)
         
     def set_downloading_label(self, str):
@@ -265,9 +274,11 @@ class MyGUI:
 
     def destroy_downloading_firmware_window(self):
         self.downloading_window.destroy()
+        self.notebook_enable()
+        self._main_window.focus_force()
     
     def on_close_downloading_firmware_window(self):
-        self.downloading_window.destroy()
+        self.destroy_downloading_firmware_window()
         self._main_window.attributes('-disable', False)
         
 
@@ -290,21 +301,20 @@ class MyGUI:
 
         # init
         if my_download.status == download_status.FILE_PARSE.value:
+            my_download.status = download_status.IDLE.value
             my_parse.parse_vtx_common()
             ret0 = my_parse.parse_vtx_releases()
             ret1 = my_parse.parse_event_vrx_releases()
             ret2 = my_parse.parse_hybrid_view_releases()
 
-            self.notebook_enable()
-
-            my_download.status = download_status.IDLE.value
             self._vtx_frame.target_combobox_update_value(
                 list(my_parse.vtx_info.keys()))
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
             if ret0 == 0 or ret1 == 0 or ret2 == 0:
-                self.set_downloading_label("Download firmware list failed.")
-                self.downloading_window.protocol("WM_DELETE_WINDOW", self.on_close_downloading_firmware_window)
+                self.network_error = 1
+                self.set_downloading_label("Download firmware list failed, Press OK to continue")
+                self.downloading_button.config(state = "normal")
             else:
                 self.destroy_downloading_firmware_window()
                 self._main_window.attributes('-disable', False)
