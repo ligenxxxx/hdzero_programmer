@@ -38,8 +38,8 @@ class ch341_status(Enum):
 
 
 class download_status(Enum):
-    IDLE = -2
     FILE_PARSE = -1
+    IDLE = 0
     DOWNLOAD_VTX_FW = 1
     DOWNLOAD_VTX_FW_DONE = 2
     DOWNLOAD_VTX_FW_FAILED = 3

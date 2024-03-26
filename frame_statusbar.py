@@ -12,7 +12,6 @@ class frame_statusbar:
         self._frame.grid_rowconfigure(0, weight=1)
 
         self.init_status_label()
-        self.status_label_set_text("Downloading Release Note ...")
         self.init_progress_bar()
         self.progress_bar_set_value(100)
 

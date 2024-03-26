@@ -50,6 +50,7 @@ def download_thread_proc():
         "https://api.github.com/repos/ligenxxxx/event-vrx/releases", "event_vrx_releases", 1)
     ret3 = my_download.download_file(
         "https://api.github.com/repos/ligenxxxx/hv/releases", "hybrid_view_releases", 1)
+    time.sleep(1)
     my_download.status = download_status.FILE_PARSE.value
 
     while True:

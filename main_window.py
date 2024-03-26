@@ -44,6 +44,8 @@ class MyGUI:
         self.is_update_hybrid_view = 0
         self.hybrid_view_is_alive = 0
 
+        self.downloading_window_status = 0
+
     def init_main_window(self):
         screenWidth = self._main_window.winfo_screenwidth()
         screenHeight = self._main_window.winfo_screenheight()
@@ -236,6 +238,39 @@ class MyGUI:
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
 
+    def create_downloading_firmware_window(self):
+        if self.downloading_window_status == 1:
+            pass
+        screenWidth = self._main_window.winfo_screenwidth()
+        screenHeight = self._main_window.winfo_screenheight()
+        x = int((screenWidth - 300) / 2)
+        y = int((screenHeight - 60) / 2)
+
+        self.downloading_window = tk.Toplevel()
+        self.downloading_window.geometry("%sx%s+%s+%s" %
+                                         (300, 60, x, y))
+        self.downloading_window.resizable(False, False)
+        
+        self.downloading_window.title("Downloading")
+        self.downloading_label = tk.Label(self.downloading_window,
+                         text="Downloading firmware list from github ...")
+        self.downloading_label.pack(pady=10)
+
+        self.downloading_window_status = 1
+        
+        self._main_window.attributes('-disable', True)
+        
+    def set_downloading_label(self, str):
+        self.downloading_label.config(text=str)
+
+    def destroy_downloading_firmware_window(self):
+        self.downloading_window.destroy()
+    
+    def on_close_downloading_firmware_window(self):
+        self.downloading_window.destroy()
+        self._main_window.attributes('-disable', False)
+        
+
     def refresh(self):
         '''
         1. update vtx
@@ -268,9 +303,12 @@ class MyGUI:
             self._vtx_frame.target_combobox_set_default()
             self._vtx_frame.target_combobox_enable()
             if ret0 == 0 or ret1 == 0 or ret2 == 0:
-                self._statusbar_frame.status_label_set_text("Network error")
+                self.set_downloading_label("Download firmware list failed.")
+                self.downloading_window.protocol("WM_DELETE_WINDOW", self.on_close_downloading_firmware_window)
             else:
-                self._statusbar_frame.status_label_set_text(" ")
+                self.destroy_downloading_firmware_window()
+                self._main_window.attributes('-disable', False)
+            
 
         # vtx
         if self.current_selected_tab() == 0:
@@ -553,5 +591,11 @@ def ui_thread_proc():
 
     my_gui = MyGUI(root)
     my_gui.refresh()
+
+    if my_gui.downloading_window_status == 0:
+        my_gui._main_window.after(
+            100, my_gui.create_downloading_firmware_window)
+
     root.protocol("WM_DELETE_WINDOW", on_closing)
+
     my_gui._main_window.mainloop()
