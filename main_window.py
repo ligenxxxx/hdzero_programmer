@@ -113,10 +113,10 @@ class MyGUI:
         self._programmer_frame.local_fw_button_enable()
 
     def on_select_version(self, event):
-        self._programmer_frame.online_fw_button_hidden()
         selected_version = self._programmer_frame.version_combobox.get()
         print("Selected:", selected_version)
         self._programmer_frame.mode = 0
+        self._programmer_frame.online_fw_button_show()
 
         if self.current_selected_tab() == 0:
             self._programmer_frame.update_button_enable()

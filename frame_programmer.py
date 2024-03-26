@@ -69,6 +69,7 @@ class frame_programmer:
     def online_fw_button_hidden(self):
         self.version_combobox.grid(
             row=1, column=0, padx=5, pady=5)
+        self.version_combobox.event_generate('<Button-1>')
         self.online_fw_button.grid_remove()
 
     def local_fw_button_disable(self):
