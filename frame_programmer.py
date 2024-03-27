@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+import os
 
 
 class frame_programmer:
@@ -18,6 +19,7 @@ class frame_programmer:
         self.online_list = []
         self.mode = 0  # 0/1 : url/local path
         self.local_file_path = ""
+        self.local_file_path_shorten = ""
         self.url = ""
         
         self.is_load_online = tk.StringVar()
@@ -71,18 +73,32 @@ class frame_programmer:
             row=1, column=0, padx=5, pady=5)
         self.version_combobox.event_generate('<Button-1>')
         self.online_fw_button.grid_remove()
+        self.local_fw_button_set_str_default()
+    
+    def online_fw_button_set_str(self, str):
+        self.online_fw_button['text'] = str
+        
+    def online_fw_button_set_str_default(self):
+        self.online_fw_button['text'] = "Load Online Firmware"
 
     def local_fw_button_disable(self):
         self.local_fw_button.config(state="disabled")
 
     def local_fw_button_enable(self):
         self.local_fw_button.config(state="normal")
+        
+    def local_fw_button_set_str(self, str):
+        self.local_fw_button["text"] = str
+        
+    def local_fw_button_set_str_default(self):
+        self.local_fw_button["text"] = "Load Local Firmware"
     
     def deselect(self):
         self.is_load_online.set("")
 
     def select_local_file(self):
         self.version_combobox_set_default()
+        self.online_fw_button_set_str_default()
         filetypes = (("Bin files", "*.bin"), ("All files", "*.*"))
         try:
             self.local_file_path = filedialog.askopenfilename(
@@ -92,9 +108,20 @@ class frame_programmer:
 
         if self.local_file_path:
             self.mode = 1
+            self.local_file_path_shorten = self.shorten_path(self.local_file_path)
+            self.local_fw_button_set_str(self.local_file_path_shorten)
 
     def update_button_disable(self):
         self.update_button["state"] = "disabled"
 
     def update_button_enable(self):
         self.update_button["state"] = "normal"
+    
+    def shorten_path(self, path, max_length=30):
+        if len(path) <= max_length:
+            return path
+        else:
+            head, tail = os.path.split(path)
+            while len(head) + len(tail) + 4 > max_length:  # 4 表示保留的字符数，如 "...\"
+                head = os.path.split(head)[0]
+            return os.path.join(head, "..." + tail)

@@ -122,14 +122,20 @@ class MyGUI:
             self._programmer_frame.update_button_enable()
             self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.target_combobox.get(
             )][self._programmer_frame.version_combobox.get()]
+            self._programmer_frame.online_fw_button_set_str(
+                self._programmer_frame.version_combobox.get())
         elif self.current_selected_tab() == 1:
             self._programmer_frame.update_button_enable()
             self._programmer_frame.url = my_parse.hybrid_view_info[self._programmer_frame.version_combobox.get(
             )]
+            self._programmer_frame.online_fw_button_set_str(
+                self._programmer_frame.version_combobox.get())
         elif self.current_selected_tab() == 2:
             self._programmer_frame.update_button_enable()
             self._programmer_frame.url = my_parse.event_vrx_info[self._programmer_frame.version_combobox.get(
             )]
+            self._programmer_frame.online_fw_button_set_str(
+                self._programmer_frame.version_combobox.get())
 
         self._statusbar_frame.status_label_set_text("FW: Online")
 
@@ -246,6 +252,8 @@ class MyGUI:
             my_ch341.status = ch341_status.IDLE.value
 
         self._programmer_frame.deselect()
+        self._programmer_frame.online_fw_button_set_str_default()
+        self._programmer_frame.local_fw_button_set_str_default()
 
     def current_selected_tab(self):
         return self._tabCtrl.index(self._tabCtrl.select())
@@ -262,17 +270,17 @@ class MyGUI:
         self.downloading_window.geometry("%sx%s+%s+%s" %
                                          (300, 50, x, y))
         self.downloading_window.resizable(False, False)
-        
+
         self.downloading_window.title("Downloading")
         self.downloading_label = tk.Label(self.downloading_window,
-                         text="Downloading firmware list from github ...")
+                                          text="Downloading firmware list from github ...")
         self.downloading_label.pack(pady=10)
 
         self.downloading_window_status = 1
         self.downloading_window.overrideredirect(True)
-        
+
         self._main_window.attributes('-disable', True)
-        
+
     def set_downloading_label(self, str):
         self.downloading_label.config(text=str)
 
@@ -280,7 +288,6 @@ class MyGUI:
         self.downloading_window.destroy()
         self.notebook_enable()
         self._main_window.focus_force()
-        
 
     def refresh(self):
         '''
@@ -315,10 +322,9 @@ class MyGUI:
                 self.set_downloading_label("Download firmware list failed")
                 self._main_window.update()
                 time.sleep(1)
-            
+
             self.destroy_downloading_firmware_window()
             self._main_window.attributes('-disable', False)
-            
 
         # vtx
         if self.current_selected_tab() == 0:
@@ -382,6 +388,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_show()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._programmer_frame.deselect()
@@ -397,6 +404,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -427,6 +435,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -470,6 +479,7 @@ class MyGUI:
                     self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
@@ -488,6 +498,7 @@ class MyGUI:
                     self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
@@ -502,6 +513,7 @@ class MyGUI:
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
 
                     self._hybrid_view_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
@@ -516,6 +528,7 @@ class MyGUI:
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.online_fw_button_enable()
                     self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
 
                 elif self.hybrid_view_is_alive == 1 and my_ch341.hybridview_connected == 1:  # hybird view is alive
@@ -544,6 +557,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -581,6 +595,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -596,6 +611,7 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_enable()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
