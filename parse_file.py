@@ -1,4 +1,5 @@
 import json
+from PIL import Image
 
 
 class parse:
@@ -7,10 +8,12 @@ class parse:
         self.vtx_common_path = "vtx_common"
         self.event_vrx_releases_path = "event_vrx_releases"
         self.hybrid_view_releases_path = "hybrid_view_releases"
+        self.vtx_tragets_image_path = "vtx_targets.png"
 
         self.vtx_info = {}
         self.event_vrx_info = {}
         self.hybrid_view_info = {}
+        self.vtx_target_image=[]
 
     def parse_vtx_common(self):
         try:
@@ -98,5 +101,18 @@ class parse:
         except:
             return 0
 
+    def parse_vtx_tragets_image(self, num):
+        try:
+            ori_img = Image.open(self.vtx_tragets_image_path)
+        except:
+            return 0
+        
+        for i in range(0, num):
+            try:
+                self.vtx_target_image.append(ori_img.crop((0, i*100, 199, i*100+99)))
+            except:
+                return 0
+
+        return 1
 
 my_parse = parse()

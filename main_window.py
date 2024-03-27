@@ -23,15 +23,15 @@ import io
 class MyGUI:
 
     def __init__(self, init_window_name):
-        self.winWidth = 640
-        self.winHeight = 320
+        self.winWidth = 800
+        self.winHeight = 600
         self.title = "HDZero Programmer " + "V0.2.0"
 
         self._programmer_frame = None
         self._main_window = init_window_name
-        self._main_window.grid_rowconfigure(0, weight=8)
-        self._main_window.grid_rowconfigure(1, weight=2)
-        self._main_window.grid_rowconfigure(2, weight=1)
+        self._main_window.grid_rowconfigure(0, weight=18)
+        self._main_window.grid_rowconfigure(1, weight=0)
+        self._main_window.grid_rowconfigure(2, weight=0)
         self._main_window.grid_columnconfigure(0, weight=1)
 
         self.init_tab()
@@ -91,8 +91,9 @@ class MyGUI:
 
     def init_vtx_frame(self):
         self._vtx_frame = frame_vtx(self._tabCtrl)
-        self._vtx_frame.target_combobox.bind(
-            "<<ComboboxSelected>>", self.on_select_vtx_target)
+        for i in range(0, len(list(my_parse.vtx_info.keys()))):
+            self._vtx_frame.radio_button[i].bind(
+                "<Button-1>", self.on_select_vtx_target)
 
     def init_hybrid_view_frame(self):
         self._hybrid_view_frame = frame_hybrid_view(self._tabCtrl)
@@ -103,8 +104,8 @@ class MyGUI:
     def init_statusbar(self):
         self._statusbar_frame = frame_statusbar(self._main_window)
 
-    def on_select_vtx_target(self, event):
-        selected_target = self._vtx_frame.target_combobox.get()
+    def on_select_vtx_target(self):
+        selected_target = self._vtx_frame.vtx_target.get()
         print("Selected target:", selected_target)
         version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
         self._programmer_frame.version_combobox_update_values(version_list)
@@ -121,7 +122,7 @@ class MyGUI:
 
         if self.current_selected_tab() == 0:
             self._programmer_frame.update_button_enable()
-            self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.target_combobox.get(
+            self._programmer_frame.url = my_parse.vtx_info[self._vtx_frame.vtx_target.get(
             )][self._programmer_frame.version_combobox.get()]
             self._programmer_frame.online_fw_button_set_str(
                 self._programmer_frame.version_combobox.get())
@@ -171,11 +172,12 @@ class MyGUI:
 
             self.notebook_disable()
 
-            self._vtx_frame.target_combobox_disable()
+            self._vtx_frame.radio_button_disable()
 
             self._programmer_frame.update_button_disable()
             self._programmer_frame.version_combobox_disable()
             self._programmer_frame.local_fw_button_disable()
+            self._programmer_frame.online_fw_button_disable()
 
             self._statusbar_frame.status_label_set_text("Connecting VTX ...")
             self._statusbar_frame.progress_bar_set_value(1)
@@ -213,13 +215,12 @@ class MyGUI:
         print("Selected tab:", self.current_selected_tab())
 
         if self.current_selected_tab() == 0:
-            self._vtx_frame.target_combobox_set_default()
+            self._vtx_frame.radio_button_reset()
 
             self._programmer_frame.version_combobox_update_values("")
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
-            self._programmer_frame.online_fw_button_disable()
-            self._programmer_frame.local_fw_button_disable()
+            # self._programmer_frame.local_fw_button_disable()
             self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
@@ -314,18 +315,18 @@ class MyGUI:
             ret0 = my_parse.parse_vtx_releases()
             ret1 = my_parse.parse_event_vrx_releases()
             ret2 = my_parse.parse_hybrid_view_releases()
+            ret3 = my_parse.parse_vtx_tragets_image(
+                len(list(my_parse.vtx_info.keys())))
 
-            self._vtx_frame.target_combobox_update_value(
-                list(my_parse.vtx_info.keys()))
-            self._vtx_frame.target_combobox_set_default()
-            self._vtx_frame.target_combobox_enable()
-            if ret0 == 0 or ret1 == 0 or ret2 == 0:
+            if ret0 == 0 or ret1 == 0 or ret2 == 0 or ret3 == 0:
                 self.network_error = 1
                 self.set_downloading_label("Download firmware list failed")
                 self._main_window.update()
                 time.sleep(1)
-
             self.destroy_downloading_firmware_window()
+
+            self._vtx_frame.create_radio_button_list(
+                list(my_parse.vtx_info.keys()), self.on_select_vtx_target, my_parse.vtx_target_image)
             self._main_window.attributes('-disable', False)
 
         # vtx
@@ -333,7 +334,7 @@ class MyGUI:
             # download
             if my_download.status == download_status.DOWNLOAD_VTX_FW_DONE.value:
                 my_download.status = download_status.IDLE.value
-                selected_target = self._vtx_frame.target_combobox.get()
+                selected_target = self._vtx_frame.vtx_target.get()
                 my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
                 my_ch341.fw_path = my_download.save_path
                 my_ch341.written_len = 0
@@ -345,10 +346,11 @@ class MyGUI:
 
                 self.notebook_enable()
 
-                self._vtx_frame.target_combobox_enable()
+                self._vtx_frame.radio_button_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.update_button_disable()
@@ -367,7 +369,7 @@ class MyGUI:
                     self._statusbar_frame.status_label_set_text(
                         "Downloading Firmware ...")
                 else:
-                    selected_target = self._vtx_frame.target_combobox.get()
+                    selected_target = self._vtx_frame.vtx_target.get()
                     my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
                     my_ch341.fw_path = self._programmer_frame.local_file_path
                     my_ch341.status = ch341_status.VTX_UPDATE.value
@@ -383,10 +385,11 @@ class MyGUI:
 
                 self.notebook_enable()
 
-                self._vtx_frame.target_combobox_enable()
+                self._vtx_frame.radio_button_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.online_fw_button_show()
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
@@ -400,10 +403,11 @@ class MyGUI:
 
                 self.notebook_enable()
 
-                self._vtx_frame.target_combobox_enable()
+                self._vtx_frame.radio_button_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
@@ -434,7 +438,8 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
@@ -478,7 +483,8 @@ class MyGUI:
                     self.notebook_enable()
 
                     self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(self.network_error)
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
@@ -497,7 +503,8 @@ class MyGUI:
                     self.notebook_enable()
 
                     self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(self.network_error)
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
@@ -513,7 +520,8 @@ class MyGUI:
                     self._hybrid_view_frame.setting_enable()
 
                     self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(self.network_error)
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
@@ -528,7 +536,8 @@ class MyGUI:
                     self._hybrid_view_frame.setting_disable()
 
                     self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(self.network_error)
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_disable()
@@ -556,7 +565,8 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
@@ -594,7 +604,8 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
@@ -610,7 +621,8 @@ class MyGUI:
                 self.notebook_enable()
 
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
