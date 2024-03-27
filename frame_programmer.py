@@ -61,7 +61,9 @@ class frame_programmer:
     def online_fw_button_disable(self):
         self.online_fw_button.config(state="disabled")
 
-    def online_fw_button_enable(self):
+    def online_fw_button_enable(self, network_error):
+        if network_error:
+            return
         self.online_fw_button.config(state="normal")
     
     def online_fw_button_show(self):
