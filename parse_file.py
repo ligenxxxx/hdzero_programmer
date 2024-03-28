@@ -4,11 +4,11 @@ from PIL import Image
 
 class parse:
     def __init__(self):
-        self.vtx_releases_path = "vtx_releases"
-        self.vtx_common_path = "vtx_common"
-        self.event_vrx_releases_path = "event_vrx_releases"
-        self.hybrid_view_releases_path = "hybrid_view_releases"
-        self.vtx_tragets_image_path = "vtx_targets.png"
+        self.vtx_releases_path = "resource/vtx_releases"
+        self.vtx_common_path = "resource/vtx_common"
+        self.event_vrx_releases_path = "resource/event_vrx_releases"
+        self.hybrid_view_releases_path = "resource/hybrid_view_releases"
+        self.vtx_tragets_image_path = "resource/vtx_targets.png"
 
         self.vtx_info = {}
         self.event_vrx_info = {}
@@ -109,7 +109,7 @@ class parse:
         
         for i in range(0, num):
             try:
-                self.vtx_target_image.append(ori_img.crop((0, i*100, 199, i*100+99)))
+                self.vtx_target_image.append(ori_img.crop((0, i*100, 299, i*100+99)))
             except:
                 return 0
 

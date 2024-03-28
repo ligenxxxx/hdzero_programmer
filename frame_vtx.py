@@ -40,7 +40,7 @@ class frame_vtx():
     def radio_button_enable(self):
         for i in range(0, self.target_num):
             self.radio_button[i].config(state="normal")
-            self.radio_button_reset()
+        self.radio_button_reset()
 
     def radio_button_reset(self):
         try:

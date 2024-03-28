@@ -364,7 +364,7 @@ class MyGUI:
                 my_ch341.status = ch341_status.IDLE.value
                 if self._programmer_frame.mode == 0:
                     my_download.url = self._programmer_frame.url
-                    my_download.save_path = "FW"
+                    my_download.save_path = "resource/FW"
                     my_download.status = download_status.DOWNLOAD_VTX_FW.value  # download url
                     self._statusbar_frame.status_label_set_text(
                         "Downloading Firmware ...")
@@ -458,7 +458,7 @@ class MyGUI:
                     my_ch341.status = ch341_status.IDLE.value
                     if self._programmer_frame.mode == 0:
                         my_download.url = self._programmer_frame.url
-                        my_download.save_path = "FW"
+                        my_download.save_path = "resource/FW"
                         my_download.status = download_status.DOWNLOAD_HYBRID_VIEW_FW.value  # download url
                         self._statusbar_frame.status_label_set_text(
                             "Downloading Firmware ...")
@@ -582,7 +582,7 @@ class MyGUI:
                 my_ch341.status = ch341_status.IDLE.value
                 if self._programmer_frame.mode == 0:
                     my_download.url = self._programmer_frame.url
-                    my_download.save_path = "FW"
+                    my_download.save_path = "resource/FW"
                     my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW.value  # download url
                     self._statusbar_frame.status_label_set_text(
                         "Downloading Firmware ...")

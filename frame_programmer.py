@@ -119,7 +119,7 @@ class frame_programmer:
     def update_button_enable(self):
         self.update_button["state"] = "normal"
     
-    def shorten_path(self, path, max_length=30):
+    def shorten_path(self, path, max_length=40):
         if len(path) <= max_length:
             return path
         else:
