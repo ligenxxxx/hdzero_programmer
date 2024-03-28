@@ -3,7 +3,7 @@ import time
 import sys
 import os
 from ctypes import create_string_buffer
-from frame_hybrid_view import frame_hybrid_view
+from frame_hybrid_viewer import frame_hybrid_viewer
 import tkinter as tk
 from tkinter import ttk
 from global_var import *
@@ -31,7 +31,7 @@ class ch341_class(object):
         self.read_setting_flag = 1
         self.dll_name = "CH341DLL.DLL"
 
-        # ------ hybridview -------------
+        # ------ hybridviewer -------------
         self.addr_brightness = 0x22
         self.addr_contrast = 0x23
         self.addr_saturation = 0x24
@@ -46,7 +46,7 @@ class ch341_class(object):
         self.written_len = 0
         self.to_write_len = 100
 
-        self.hybridview_connected = 0
+        self.hybridviewer_connected = 0
         self.iolength = 6
         self.iobuffer = create_string_buffer(65544)
         self.rdbuffer = [0] * 256
@@ -89,7 +89,7 @@ class ch341_class(object):
             except:
                 a = 1
 
-    def parse_hybridview_fw(self, fw_path):
+    def parse_hybridviewer_fw(self, fw_path):
         try:
             with open(fw_path, "rb") as file:
                 file.seek(2)
@@ -328,7 +328,7 @@ class ch341_class(object):
 
             my_ch341.written_len += 256
 
-    def connect_hybridview(self, sleep_sec):
+    def connect_hybridviewer(self, sleep_sec):
         if self.dll.CH341OpenDevice(0) < 0:
             return 0
         else:
@@ -532,20 +532,20 @@ def ch341_thread_proc():
                 my_ch341.flash_write_fw()
                 my_ch341.status = ch341_status.VTX_UPDATEDONE.value
 
-        # -------- HybridView -----------------
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_CHECK_ALIVE.value:  # check hybrid view is alive
-            if my_ch341.connect_hybridview(0.35) == 1:
-                if my_ch341.hybridview_connected == 0:
+        # -------- HybridViewer -----------------
+        elif my_ch341.status == ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value:  # check hybrid viewer is alive
+            if my_ch341.connect_hybridviewer(0.35) == 1:
+                if my_ch341.hybridviewer_connected == 0:
                     time.sleep(0.5)
                     my_ch341.read_setting()
-                    my_ch341.hybridview_connected = 1
+                    my_ch341.hybridviewer_connected = 1
             else:
-                my_ch341.hybridview_connected = 0
+                my_ch341.hybridviewer_connected = 0
 
-        elif my_ch341.status == ch341_status.HYBRIDVIEW_UPDATE.value:  # update HybridView
+        elif my_ch341.status == ch341_status.HYBRIDVIEWER_UPDATE.value:  # update HybridViewer
             # check fw size
-            if my_ch341.parse_hybridview_fw(my_ch341.fw_path) == 0:
-                my_ch341.status = ch341_status.HYBRIDVIEW_FW_ERROR.value
+            if my_ch341.parse_hybridviewer_fw(my_ch341.fw_path) == 0:
+                my_ch341.status = ch341_status.HYBRIDVIEWER_FW_ERROR.value
             else:
                 my_ch341.flash_switch0()
                 my_ch341.fw_write_to_flash(
@@ -558,7 +558,7 @@ def ch341_thread_proc():
                     my_ch341.fw_8339_buf, my_ch341.fw_8339_size)
                 my_ch341.dll.CH341CloseDevice(0)
                 my_ch341.flash_release()
-                my_ch341.status = ch341_status.HYBRIDVIEW_UPDATEDONE.value
+                my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATEDONE.value
 
         # ---------------------- event_vrx ------------------------------------
         elif my_ch341.status == ch341_status.EVENT_VRX_DISCONNECTED.value:  # connect event vrx

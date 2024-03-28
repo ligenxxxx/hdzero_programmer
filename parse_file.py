@@ -7,12 +7,12 @@ class parse:
         self.vtx_releases_path = "resource/vtx_releases"
         self.vtx_common_path = "resource/vtx_common"
         self.event_vrx_releases_path = "resource/event_vrx_releases"
-        self.hybrid_view_releases_path = "resource/hybrid_view_releases"
+        self.hybrid_viewer_releases_path = "resource/hybrid_viewer_releases"
         self.vtx_tragets_image_path = "resource/vtx_targets.png"
 
         self.vtx_info = {}
         self.event_vrx_info = {}
-        self.hybrid_view_info = {}
+        self.hybrid_viewer_info = {}
         self.vtx_target_image=[]
 
     def parse_vtx_common(self):
@@ -83,9 +83,9 @@ class parse:
         except:
             return 0
 
-    def parse_hybrid_view_releases(self):
+    def parse_hybrid_viewer_releases(self):
         try:
-            with open(self.hybrid_view_releases_path) as f:
+            with open(self.hybrid_viewer_releases_path) as f:
                 data = json.load(f)
 
             for i in range(len(data)):
@@ -96,7 +96,7 @@ class parse:
 
                     version = data[i]['tag_name']
                     url = data[i]['assets'][j]['browser_download_url']
-                    self.hybrid_view_info[version] = url
+                    self.hybrid_viewer_info[version] = url
             return 1
         except:
             return 0

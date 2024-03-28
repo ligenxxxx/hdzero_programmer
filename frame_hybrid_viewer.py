@@ -4,11 +4,11 @@ import ctypes
 import global_var
 
 
-class frame_hybrid_view:
+class frame_hybrid_viewer:
     def __init__(self, parent):
         self._parent = parent
         self._frame = tk.Frame(parent)
-        parent.add(self._frame, text="Hybrid View")
+        parent.add(self._frame, text="Hybrid Viewer")
 
         self.dll_name = "CH341DLL.DLL"
         self.color_background = "#303030"
