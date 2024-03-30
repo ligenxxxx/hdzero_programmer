@@ -139,8 +139,6 @@ class MyGUI:
             self._programmer_frame.online_fw_button_set_str(
                 self._programmer_frame.version_combobox.get())
 
-        self._statusbar_frame.status_label_set_text("FW: Online")
-
     def on_load_local_firmware(self):
         self._programmer_frame.online_fw_button_show()
         self._programmer_frame.select_local_file()
@@ -150,18 +148,15 @@ class MyGUI:
 
         if self.current_selected_tab() == 0:
             self._programmer_frame.mode = 1
-            self._statusbar_frame.status_label_set_text("FW: Local")
             self._programmer_frame.update_button_enable()
             my_ch341.fw_path = self._programmer_frame.local_file_path
 
         elif self.current_selected_tab() == 1:
-            self._statusbar_frame.status_label_set_text("FW: Local")
             self._programmer_frame.update_button_enable()
             self._programmer_frame.mode = 1
             my_ch341.fw_path = self._programmer_frame.local_file_path
 
         elif self.current_selected_tab() == 2:
-            self._statusbar_frame.status_label_set_text("FW: Local")
             self._programmer_frame.update_button_enable()
             self._programmer_frame.mode = 1
             my_ch341.fw_path = self._programmer_frame.local_file_path
@@ -180,7 +175,7 @@ class MyGUI:
             self._programmer_frame.online_fw_button_disable()
 
             self._statusbar_frame.status_label_set_text("Connecting VTX ...")
-            self._statusbar_frame.progress_bar_set_value(1)
+            self._statusbar_frame.progress_bar_set_value(0)
 
         elif self.current_selected_tab() == 1:
             self.is_update_hybrid_viewer = 1
@@ -197,7 +192,7 @@ class MyGUI:
 
             self._statusbar_frame.status_label_set_text(
                 "Connecting Hybrid Viewer ...")
-            self._statusbar_frame.progress_bar_set_value(1)
+            self._statusbar_frame.progress_bar_set_value(0)
 
         elif self.current_selected_tab() == 2:
             my_ch341.status = ch341_status.EVENT_VRX_DISCONNECTED.value
@@ -209,7 +204,7 @@ class MyGUI:
             self._programmer_frame.local_fw_button_disable()
             self._statusbar_frame.status_label_set_text(
                 "Connecting Event VRX ...")
-            self._statusbar_frame.progress_bar_set_value(1)
+            self._statusbar_frame.progress_bar_set_value(0)
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -339,7 +334,7 @@ class MyGUI:
                 my_ch341.fw_path = my_download.save_path
                 my_ch341.written_len = 0
                 my_ch341.status = ch341_status.VTX_UPDATE.value
-                self._statusbar_frame.status_label_set_text("Updating VTX ...")
+                self._statusbar_frame.label_hidden()
             elif my_download.status == download_status.DOWNLOAD_VTX_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
                 my_ch341.status = ch341_status.IDLE.value
@@ -373,8 +368,7 @@ class MyGUI:
                     my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
                     my_ch341.fw_path = self._programmer_frame.local_file_path
                     my_ch341.status = ch341_status.VTX_UPDATE.value
-                    self._statusbar_frame.status_label_set_text(
-                        "Updating VTX ...")
+                    self._statusbar_frame.label_hidden()
 
             elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # refresh progress bar
                 value = (my_ch341.written_len /
@@ -397,7 +391,6 @@ class MyGUI:
                 self._programmer_frame.update_button_disable()
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._programmer_frame.deselect()
-                self._statusbar_frame.status_label_set_text("Update VTX Done")
             elif my_ch341.status == ch341_status.VTX_FW_ERROR.value:  # vtx fw error
                 my_ch341.status = ch341_status.IDLE.value
 
@@ -426,8 +419,7 @@ class MyGUI:
                 my_ch341.written_len = 0
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
-                self._statusbar_frame.status_label_set_text(
-                    "Updating Hybrid Viewer ...")
+                self._statusbar_frame.label_hidden()
                 my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
@@ -466,8 +458,7 @@ class MyGUI:
                         my_ch341.written_len = 0
                         my_ch341.to_write_len = os.path.getsize(
                             my_ch341.fw_path)
-                        self._statusbar_frame.status_label_set_text(
-                            "Updating Hybrid Viewer ...")
+                        self._statusbar_frame.label_hidden()
                         my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
 
                 elif my_ch341.status == ch341_status.HYBRIDVIEWER_UPDATE.value:  # refresh progress bar
@@ -492,8 +483,6 @@ class MyGUI:
                     self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(100)
-                    self._statusbar_frame.status_label_set_text(
-                        "Update HybridViewer Done")
 
                 elif my_ch341.status == ch341_status.HYBRIDVIEWER_FW_ERROR.value:  # fw error
                     self.is_update_hybrid_viewer = 0
@@ -555,8 +544,7 @@ class MyGUI:
                 my_ch341.written_len = 0
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
-                self._statusbar_frame.status_label_set_text(
-                    "Updating Event VRX ...")
+                self._statusbar_frame.label_hidden()
                 my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
@@ -589,8 +577,7 @@ class MyGUI:
                 else:
                     my_ch341.written_len = 0
                     my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-                    self._statusbar_frame.status_label_set_text(
-                        "Updating Event VRX ...")
+                    self._statusbar_frame.label_hidden()
                     my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
 
             elif my_ch341.status == ch341_status.EVENT_VRX_UPDATE.value:  # event_vrx refresh progress bar
@@ -613,8 +600,7 @@ class MyGUI:
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(100)
-                self._statusbar_frame.status_label_set_text(
-                    "Update Event VRX Done")
+
             elif my_ch341.status == ch341_status.EVENT_VRX_FW_ERROR.value:
                 my_ch341.status = ch341_status.IDLE.value
 
