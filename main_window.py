@@ -170,48 +170,105 @@ class MyGUI:
 
     def on_update(self):
         if self.current_selected_tab() == 0:
-            my_ch341.status = ch341_status.VTX_DISCONNECTED.value  # to connect vtx
+            
+            if self._programmer_frame.is_cancel == 0:
+                my_ch341.status = ch341_status.VTX_DISCONNECTED.value  # to connect vtx
 
-            self.notebook_disable()
+                self.notebook_disable()
 
-            self._vtx_frame.radio_button_disable()
+                self._vtx_frame.radio_button_disable()
 
-            self._programmer_frame.update_button_disable()
-            self._programmer_frame.version_combobox_disable()
-            self._programmer_frame.local_fw_button_disable()
-            self._programmer_frame.online_fw_button_disable()
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.version_combobox_disable()
+                self._programmer_frame.local_fw_button_disable()
+                self._programmer_frame.online_fw_button_disable()
 
-            self._statusbar_frame.status_label_set_text("Connecting VTX ...")
-            self._statusbar_frame.progress_bar_set_value(0)
+                self._statusbar_frame.status_label_set_text("Connecting VTX ...")
+                self._statusbar_frame.progress_bar_set_value(0)
+            else:
+                print("cancel vtx programmer")
+                my_ch341.status = ch341_status.IDLE.value
+                my_download.status = download_status.IDLE.value
+                
+                self.notebook_enable()
+                
+                self._vtx_frame.radio_button_enable()
+                
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.online_fw_button_enable(self.network_error)
+                
+                self._statusbar_frame.label_hidden()
+                self._statusbar_frame.progress_bar_set_value(0)
 
         elif self.current_selected_tab() == 1:
-            self.is_update_hybrid_viewer = 1
-            my_ch341.hybridviewer_connected = 0
-            my_ch341.status = ch341_status.IDLE.value
+             if self._programmer_frame.is_cancel == 0:
+                self.is_update_hybrid_viewer = 1
+                my_ch341.hybridviewer_connected = 0
+                my_ch341.status = ch341_status.IDLE.value
 
-            self.notebook_disable()
+                self.notebook_disable()
 
-            self._hybrid_viewer_frame.setting_disable()
+                self._hybrid_viewer_frame.setting_disable()
 
-            self._programmer_frame.update_button_disable()
-            self._programmer_frame.version_combobox_disable()
-            self._programmer_frame.local_fw_button_disable()
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.version_combobox_disable()
+                self._programmer_frame.local_fw_button_disable()
 
-            self._statusbar_frame.status_label_set_text(
-                "Connecting Hybrid Viewer ...")
-            self._statusbar_frame.progress_bar_set_value(0)
+                self._statusbar_frame.status_label_set_text(
+                    "Connecting Hybrid Viewer ...")
+                self._statusbar_frame.progress_bar_set_value(0)
+             else:
+                print("cancel hybrid viewer programmer")
+                self.is_update_hybrid_viewer = 0
+                my_ch341.hybridviewer_connected = 0
+                my_ch341.status = ch341_status.IDLE.value
+
+                self.notebook_enable()
+
+                self._hybrid_viewer_frame.setting_disable()
+
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.online_fw_button_enable(self.network_error)
+                
+                self._statusbar_frame.label_hidden()
+                self._statusbar_frame.progress_bar_set_value(0)
 
         elif self.current_selected_tab() == 2:
-            my_ch341.status = ch341_status.EVENT_VRX_DISCONNECTED.value
+            if self._programmer_frame.is_cancel == 0:
+                my_ch341.status = ch341_status.EVENT_VRX_DISCONNECTED.value
 
-            self.notebook_disable()
+                self.notebook_disable()
 
-            self._programmer_frame.update_button_disable()
-            self._programmer_frame.version_combobox_disable()
-            self._programmer_frame.local_fw_button_disable()
-            self._statusbar_frame.status_label_set_text(
-                "Connecting Event VRX ...")
-            self._statusbar_frame.progress_bar_set_value(0)
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.version_combobox_disable()
+                self._programmer_frame.local_fw_button_disable()
+                self._statusbar_frame.status_label_set_text(
+                    "Connecting Event VRX ...")
+                self._statusbar_frame.progress_bar_set_value(0)
+            else:
+                my_ch341.status = ch341_status.IDLE.value
+
+                self.notebook_enable()
+
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.online_fw_button_enable(self.network_error)
+                
+                self._statusbar_frame.label_hidden()
+                self._statusbar_frame.progress_bar_set_value(0)
+                
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -223,7 +280,8 @@ class MyGUI:
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
             # self._programmer_frame.local_fw_button_disable()
-            self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_set_text_update()
+            # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
             self.on_select_vtx_target()
@@ -238,7 +296,8 @@ class MyGUI:
             self._programmer_frame.online_fw_button_enable(self.network_error)
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_set_text_update()
+            # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
             self.hybrid_viewer_is_alive = 0
             my_ch341.hybridviewer_connected = 0
@@ -252,7 +311,8 @@ class MyGUI:
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_set_text_update()
+            # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
             my_ch341.status = ch341_status.IDLE.value
@@ -357,7 +417,8 @@ class MyGUI:
                     self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
@@ -397,7 +458,9 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
+
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._programmer_frame.deselect()
             elif my_ch341.status == ch341_status.VTX_FW_ERROR.value:  # vtx fw error
@@ -413,7 +476,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
@@ -444,7 +508,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
@@ -488,7 +553,8 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_disable()
+                    self._programmer_frame.update_button_set_text_update()
+                    # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(100)
@@ -506,7 +572,8 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_disable()
+                    self._programmer_frame.update_button_set_text_update()
+                    # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(0)
@@ -522,7 +589,8 @@ class MyGUI:
                         self.network_error)
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_disable()
+                    self._programmer_frame.update_button_set_text_cancel()
+                    # self._programmer_frame.update_button_disable()
 
                     self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
                                                             global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
@@ -538,7 +606,7 @@ class MyGUI:
                         self.network_error)
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_disable()
+                    # self._programmer_frame.update_button_disable()
 
                 elif self.hybrid_viewer_is_alive == 1 and my_ch341.hybridviewer_connected == 1:  # hybird viewer is alive
                     # settting
@@ -567,7 +635,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
@@ -605,7 +674,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(100)
@@ -621,7 +691,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_disable()
+                self._programmer_frame.update_button_set_text_update()
+                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)

@@ -22,6 +22,8 @@ class frame_programmer:
         self.local_file_path_shorten = ""
         self.url = ""
         
+        self.is_cancel = 0
+        
         self.is_load_online = tk.StringVar()
 
         self.version_combobox = ttk.Combobox(
@@ -38,8 +40,10 @@ class frame_programmer:
         self.local_fw_button.grid(row=1, column=1, padx=5, pady=5)
         self.local_fw_button_disable()
 
-        self.update_button = tk.Button(self._frame, text="Update")
+        self.update_button = tk.Button(self._frame)
         self.update_button.grid(row=1, column=2, padx=5, pady=5)
+        
+        self.update_button_set_text_update()
         self.update_button_disable()
 
     def frame(self):
@@ -118,6 +122,15 @@ class frame_programmer:
 
     def update_button_enable(self):
         self.update_button["state"] = "normal"
+    
+    def update_button_set_text_cancel(self):
+        self.is_cancel = 1
+        self.update_button["text"] = "Cancel"
+        
+    def update_button_set_text_update(self):
+        self.is_cancel = 0
+        self.update_button["text"] = "update"
+        
     
     def shorten_path(self, path, max_length=40):
         if len(path) <= max_length:
