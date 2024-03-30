@@ -107,14 +107,17 @@ class MyGUI:
     def on_select_vtx_target(self):
         selected_target = self._vtx_frame.vtx_target.get()
         print("Selected target:", selected_target)
-        version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
-        self._programmer_frame.version_combobox_update_values(version_list)
+        try:
+            version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
+            self._programmer_frame.version_combobox_update_values(version_list)
+        except:
+            pass
         self._programmer_frame.version_combobox_set_default()
         self._programmer_frame.version_combobox_enable()
-        
+
         self._programmer_frame.online_fw_button_enable(self.network_error)
         self._programmer_frame.online_fw_button_set_str_default()
-        
+
         self._programmer_frame.local_fw_button_enable()
         self._programmer_frame.local_fw_button_set_str_default()
 
@@ -214,7 +217,7 @@ class MyGUI:
         print("Selected tab:", self.current_selected_tab())
 
         if self.current_selected_tab() == 0:
-            self._vtx_frame.radio_button_reset()
+            self._vtx_frame.radio_button_reset()  # select first vtx target
 
             self._programmer_frame.version_combobox_update_values("")
             self._programmer_frame.version_combobox_set_default()
@@ -223,6 +226,7 @@ class MyGUI:
             self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
+            self.on_select_vtx_target()
             my_ch341.status = ch341_status.IDLE.value
 
         elif self.current_selected_tab() == 1:
@@ -239,7 +243,8 @@ class MyGUI:
             self.hybrid_viewer_is_alive = 0
             my_ch341.hybridviewer_connected = 0
 
-            my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value   # to connect Hybrid Viewer
+            # to connect Hybrid Viewer
+            my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
         elif self.current_selected_tab() == 2:
             version_list = list(my_parse.event_vrx_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
@@ -520,7 +525,7 @@ class MyGUI:
                     self._programmer_frame.update_button_disable()
 
                     self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
-                                                          global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
+                                                            global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
                     self.hybrid_viewer_is_alive = 1
                 elif self.hybrid_viewer_is_alive == 1 and my_ch341.hybridviewer_connected == 0:  # to disconnect hybird viewer
                     self.hybrid_viewer_is_alive = 0
