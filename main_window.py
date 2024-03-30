@@ -173,7 +173,8 @@ class MyGUI:
             
             if self._programmer_frame.is_cancel == 0:
                 my_ch341.status = ch341_status.VTX_DISCONNECTED.value  # to connect vtx
-
+                my_download.to_stop = 0
+                
                 self.notebook_disable()
 
                 self._vtx_frame.radio_button_disable()
@@ -208,6 +209,7 @@ class MyGUI:
                 self.is_update_hybrid_viewer = 1
                 my_ch341.hybridviewer_connected = 0
                 my_ch341.status = ch341_status.IDLE.value
+                my_download.to_stop = 0
 
                 self.notebook_disable()
 
@@ -245,6 +247,7 @@ class MyGUI:
         elif self.current_selected_tab() == 2:
             if self._programmer_frame.is_cancel == 0:
                 my_ch341.status = ch341_status.EVENT_VRX_DISCONNECTED.value
+                my_download.to_stop = 0
 
                 self.notebook_disable()
 
@@ -406,6 +409,8 @@ class MyGUI:
                 my_ch341.written_len = 0
                 my_ch341.status = ch341_status.VTX_UPDATE.value
                 self._statusbar_frame.label_hidden()
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_disable()
             elif my_download.status == download_status.DOWNLOAD_VTX_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
                 my_ch341.status = ch341_status.IDLE.value
@@ -441,6 +446,8 @@ class MyGUI:
                     my_ch341.fw_path = self._programmer_frame.local_file_path
                     my_ch341.status = ch341_status.VTX_UPDATE.value
                     self._statusbar_frame.label_hidden()
+                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_disable()
 
             elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # refresh progress bar
                 value = (my_ch341.written_len /
@@ -495,6 +502,8 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
@@ -535,6 +544,8 @@ class MyGUI:
                         my_ch341.to_write_len = os.path.getsize(
                             my_ch341.fw_path)
                         self._statusbar_frame.label_hidden()
+                        self._programmer_frame.update_button_set_text_update()
+                        self._programmer_frame.update_button_disable()
                         my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
 
                 elif my_ch341.status == ch341_status.HYBRIDVIEWER_UPDATE.value:  # refresh progress bar
@@ -624,6 +635,8 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
+                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
@@ -657,6 +670,8 @@ class MyGUI:
                 else:
                     my_ch341.written_len = 0
                     my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
+                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_disable()
                     self._statusbar_frame.label_hidden()
                     my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
 
