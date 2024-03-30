@@ -110,9 +110,13 @@ class MyGUI:
         version_list = list(my_parse.vtx_info[selected_target].keys())[1:]
         self._programmer_frame.version_combobox_update_values(version_list)
         self._programmer_frame.version_combobox_set_default()
-        self._programmer_frame.online_fw_button_enable(self.network_error)
         self._programmer_frame.version_combobox_enable()
+        
+        self._programmer_frame.online_fw_button_enable(self.network_error)
+        self._programmer_frame.online_fw_button_set_str_default()
+        
         self._programmer_frame.local_fw_button_enable()
+        self._programmer_frame.local_fw_button_set_str_default()
 
     def on_select_version(self, event):
         selected_version = self._programmer_frame.version_combobox.get()
