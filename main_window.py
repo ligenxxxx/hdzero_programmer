@@ -189,7 +189,7 @@ class MyGUI:
             else:
                 print("cancel vtx programmer")
                 my_ch341.status = ch341_status.IDLE.value
-                my_download.status = download_status.IDLE.value
+                my_download.to_stop = 1
                 
                 self.notebook_enable()
                 
@@ -226,6 +226,7 @@ class MyGUI:
                 self.is_update_hybrid_viewer = 0
                 my_ch341.hybridviewer_connected = 0
                 my_ch341.status = ch341_status.IDLE.value
+                my_download.to_stop = 1
 
                 self.notebook_enable()
 
@@ -255,6 +256,7 @@ class MyGUI:
                     "Connecting Event VRX ...")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
+                my_download.to_stop = 1
                 my_ch341.status = ch341_status.IDLE.value
 
                 self.notebook_enable()

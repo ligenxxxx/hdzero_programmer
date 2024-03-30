@@ -11,6 +11,7 @@ class download:
         self.status = download_status.IDLE.value
         self.url = ""
         self.save_path = ""
+        self.to_stop = 0
 
     def download_file(self, url, save_path, clear):
         print(f"Downloading {url}")
@@ -21,7 +22,12 @@ class download:
             response = requests.get(url)
             if response.status_code == 200:
                 with open(save_path, "wb") as file:
-                    file.write(response.content)
+                    for chunk in response.iter_content(chunk_size=1024):
+                        if self.to_stop == 1:
+                            self.to_stop = 0
+                            return 2
+                        if chunk:
+                            file.write(chunk)
                 if self.status == download_status.DOWNLOAD_EXIT.value:
                     sys.exit()
                 return 1
@@ -55,20 +61,29 @@ def download_thread_proc():
 
     while True:
         if my_download.status == download_status.DOWNLOAD_VTX_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path, 1):
+            ret = my_download.download_file(my_download.url, my_download.save_path, 1)
+            if  ret == 1:
                 my_download.status = download_status.DOWNLOAD_VTX_FW_DONE.value
+            elif ret == 2: # stop
+                my_download.status = download_status.IDLE.value
             else:
                 my_download.status = download_status.DOWNLOAD_VTX_FW_FAILED.value
 
         elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path, 1):
+            ret = my_download.download_file(my_download.url, my_download.save_path, 1)
+            if  ret == 1:
                 my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW_DONE.value
+            elif ret == 2: # stop
+                my_download.status = download_status.IDLE.value
             else:
                 my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value
 
         elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW.value:
-            if my_download.download_file(my_download.url, my_download.save_path, 1):
+            ret = my_download.download_file(my_download.url, my_download.save_path, 1)
+            if ret == 1:
                 my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW_DONE.value
+            elif ret == 2: # stop
+                my_download.status = download_status.IDLE.value
             else:
                 my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value
 
