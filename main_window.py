@@ -227,6 +227,7 @@ class MyGUI:
                 print("cancel hybrid viewer programmer")
                 self.is_update_hybrid_viewer = 0
                 my_ch341.hybridviewer_connected = 0
+                self.hybrid_viewer_is_alive = 0
                 my_ch341.status = ch341_status.IDLE.value
                 my_download.to_stop = 1
 
@@ -277,7 +278,7 @@ class MyGUI:
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
-
+        self._statusbar_frame.label_hidden()
         if self.current_selected_tab() == 0:
             self._vtx_frame.radio_button_reset()  # select first vtx target
 
@@ -602,7 +603,6 @@ class MyGUI:
                         self.network_error)
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_set_text_cancel()
                     # self._programmer_frame.update_button_disable()
 
                     self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
