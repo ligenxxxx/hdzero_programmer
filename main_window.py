@@ -170,11 +170,11 @@ class MyGUI:
 
     def on_update(self):
         if self.current_selected_tab() == 0:
-            
+
             if self._programmer_frame.is_cancel == 0:
                 my_ch341.status = ch341_status.VTX_DISCONNECTED.value  # to connect vtx
                 my_download.to_stop = 0
-                
+
                 self.notebook_disable()
 
                 self._vtx_frame.radio_button_disable()
@@ -185,27 +185,29 @@ class MyGUI:
                 self._programmer_frame.local_fw_button_disable()
                 self._programmer_frame.online_fw_button_disable()
 
-                self._statusbar_frame.status_label_set_text("Connecting VTX ...")
+                self._statusbar_frame.status_label_set_text(
+                    "Connecting VTX ...")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
                 print("cancel vtx programmer")
                 my_ch341.status = ch341_status.IDLE.value
                 my_download.to_stop = 1
-                
+
                 self.notebook_enable()
-                
+
                 self._vtx_frame.radio_button_enable()
-                
+
                 self._programmer_frame.update_button_set_text_update()
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
-                
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
+
                 self._statusbar_frame.label_hidden()
                 self._statusbar_frame.progress_bar_set_value(0)
 
         elif self.current_selected_tab() == 1:
-             if self._programmer_frame.is_cancel == 0:
+            if self._programmer_frame.is_cancel == 0:
                 self.is_update_hybrid_viewer = 1
                 my_ch341.hybridviewer_connected = 0
                 my_ch341.status = ch341_status.IDLE.value
@@ -223,7 +225,7 @@ class MyGUI:
                 self._statusbar_frame.status_label_set_text(
                     "Connecting Hybrid Viewer ...")
                 self._statusbar_frame.progress_bar_set_value(0)
-             else:
+            else:
                 print("cancel hybrid viewer programmer")
                 self.is_update_hybrid_viewer = 0
                 my_ch341.hybridviewer_connected = 0
@@ -240,8 +242,9 @@ class MyGUI:
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
-                
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
+
                 self._statusbar_frame.label_hidden()
                 self._statusbar_frame.progress_bar_set_value(0)
 
@@ -270,11 +273,11 @@ class MyGUI:
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.online_fw_button_enable(self.network_error)
-                
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
+
                 self._statusbar_frame.label_hidden()
                 self._statusbar_frame.progress_bar_set_value(0)
-                
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -299,7 +302,6 @@ class MyGUI:
             version_list = list(my_parse.hybrid_viewer_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
             self._programmer_frame.version_combobox_set_default()
-            self._programmer_frame.online_fw_button_enable(self.network_error)
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_set_text_update()
@@ -313,7 +315,6 @@ class MyGUI:
         elif self.current_selected_tab() == 2:
             version_list = list(my_parse.event_vrx_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
-            self._programmer_frame.online_fw_button_enable(self.network_error)
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.local_fw_button_enable()
@@ -325,6 +326,7 @@ class MyGUI:
 
         self._programmer_frame.deselect()
         self._programmer_frame.online_fw_button_set_str_default()
+        self._programmer_frame.online_fw_button_enable(self.network_error)
         self._programmer_frame.local_fw_button_set_str_default()
 
     def current_selected_tab(self):
@@ -463,15 +465,15 @@ class MyGUI:
 
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.version_combobox_set_default()
-                
+
                 self._programmer_frame.online_fw_button_enable(
                     self.network_error)
                 self._programmer_frame.online_fw_button_set_str_default()
                 self._programmer_frame.online_fw_button_show()
-                
+
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                
+
                 self._programmer_frame.update_button_set_text_update()
                 # self._programmer_frame.update_button_disable()
 
