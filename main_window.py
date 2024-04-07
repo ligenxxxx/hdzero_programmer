@@ -189,7 +189,6 @@ class MyGUI:
                     "Connecting VTX ...")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
-                print("cancel vtx programmer")
                 my_ch341.status = ch341_status.IDLE.value
                 my_download.to_stop = 1
 
@@ -197,7 +196,7 @@ class MyGUI:
 
                 self._vtx_frame.radio_button_enable()
 
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("VTX")
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.online_fw_button_enable(
@@ -238,7 +237,7 @@ class MyGUI:
                 self._hybrid_viewer_frame.setting_disable()
 
                 # self._programmer_frame.update_button_disable()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Hybrid Viewer")
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
@@ -269,7 +268,7 @@ class MyGUI:
                 self.notebook_enable()
 
                 # self._programmer_frame.update_button_disable()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Event VRX")
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
@@ -289,7 +288,7 @@ class MyGUI:
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_disable()
             # self._programmer_frame.local_fw_button_disable()
-            self._programmer_frame.update_button_set_text_update()
+            self._programmer_frame.update_button_set_text_update("VTX")
             # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
@@ -304,7 +303,7 @@ class MyGUI:
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_set_text_update()
+            self._programmer_frame.update_button_set_text_update("Hybrid Viewer")
             # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
             self.hybrid_viewer_is_alive = 0
@@ -318,7 +317,7 @@ class MyGUI:
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_set_text_update()
+            self._programmer_frame.update_button_set_text_update("Event VRX")
             # self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
@@ -412,7 +411,7 @@ class MyGUI:
                 my_ch341.written_len = 0
                 my_ch341.status = ch341_status.VTX_UPDATE.value
                 self._statusbar_frame.label_hidden()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("VTX")
                 self._programmer_frame.update_button_disable()
             elif my_download.status == download_status.DOWNLOAD_VTX_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
@@ -427,7 +426,7 @@ class MyGUI:
                     self.network_error)
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("VTX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -449,7 +448,7 @@ class MyGUI:
                     my_ch341.fw_path = self._programmer_frame.local_file_path
                     my_ch341.status = ch341_status.VTX_UPDATE.value
                     self._statusbar_frame.label_hidden()
-                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_set_text_update("VTX")
                     self._programmer_frame.update_button_disable()
 
             elif my_ch341.status == ch341_status.VTX_UPDATE.value:  # refresh progress bar
@@ -474,7 +473,7 @@ class MyGUI:
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
 
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("VTX")
                 # self._programmer_frame.update_button_disable()
 
                 self._statusbar_frame.progress_bar_set_value(100)
@@ -492,7 +491,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("VTX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -509,7 +508,7 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Hybrid viewer")
                 self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value:
@@ -526,7 +525,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Hybrid viewer")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -551,7 +550,7 @@ class MyGUI:
                         my_ch341.to_write_len = os.path.getsize(
                             my_ch341.fw_path)
                         self._statusbar_frame.label_hidden()
-                        self._programmer_frame.update_button_set_text_update()
+                        self._programmer_frame.update_button_set_text_update("Hybrid viewer")
                         self._programmer_frame.update_button_disable()
                         my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
 
@@ -573,7 +572,7 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_set_text_update("Hybrid viewer")
                     # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
@@ -592,7 +591,7 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_set_text_update("Hybrid viewer")
                     # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
@@ -641,7 +640,7 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Event VRX")
                 self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value:
@@ -656,7 +655,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -676,7 +675,7 @@ class MyGUI:
                 else:
                     my_ch341.written_len = 0
                     my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-                    self._programmer_frame.update_button_set_text_update()
+                    self._programmer_frame.update_button_set_text_update("Event VRX")
                     self._programmer_frame.update_button_disable()
                     self._statusbar_frame.label_hidden()
                     my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
@@ -697,7 +696,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -714,7 +713,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update()
+                self._programmer_frame.update_button_set_text_update("Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 

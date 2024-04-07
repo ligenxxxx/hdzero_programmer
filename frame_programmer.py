@@ -43,7 +43,7 @@ class frame_programmer:
         self.update_button = tk.Button(self._frame)
         self.update_button.grid(row=1, column=2, padx=5, pady=5)
         
-        self.update_button_set_text_update()
+        self.update_button_set_text_update("VTX")
         self.update_button_disable()
 
     def frame(self):
@@ -140,9 +140,9 @@ class frame_programmer:
         self.is_cancel = 1
         self.update_button["text"] = "Cancel"
         
-    def update_button_set_text_update(self):
+    def update_button_set_text_update(self, string):
         self.is_cancel = 0
-        self.update_button["text"] = "update"
+        self.update_button["text"] = "Flash " + string
         
     
     def shorten_path(self, path, max_length=40):
