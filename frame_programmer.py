@@ -107,9 +107,17 @@ class frame_programmer:
         self.version_combobox_set_default()
         self.online_fw_button_set_str_default()
         filetypes = (("Bin files", "*.bin"), ("All files", "*.*"))
+        
+        try:
+            with open("resource/local_path", "r") as file:
+                path = file.read()
+                file.close()
+        except:
+            path = "."
+            
         try:
             self.local_file_path = filedialog.askopenfilename(
-                initialdir=".", title="select a firmware", filetypes=filetypes)
+                initialdir=path, title="select a firmware", filetypes=filetypes)
         except:
             print("please select a firmware file")
 
@@ -117,6 +125,10 @@ class frame_programmer:
             self.mode = 1
             self.local_file_path_shorten = self.shorten_path(self.local_file_path)
             self.local_fw_button_set_str(self.local_file_path_shorten)
+            path = self.local_file_path[:self.local_file_path.rfind('/') + 1]
+            with open("resource/local_path", "w") as file:
+                file.write(path)
+                file.close()
 
     def update_button_disable(self):
         self.update_button["state"] = "disabled"
