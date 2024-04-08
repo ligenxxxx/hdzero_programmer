@@ -31,6 +31,8 @@ class ch341_class(object):
         self.read_setting_flag = 1
         self.dll_name = "CH341DLL.DLL"
 
+        self.reconnect_vtx = 0
+
         # ------ hybridviewer -------------
         self.addr_brightness = 0x22
         self.addr_contrast = 0x23
@@ -271,7 +273,8 @@ class ch341_class(object):
             except:
                 self.iobuffer[4+i] = 0xff
 
-            # self.write_crc += int.from_bytes(self.iobuffer[4 + i], byteorder='little')
+            self.write_crc += int.from_bytes(
+                self.iobuffer[4 + i], byteorder='little')
 
         self.set_stream(0)
         self.stream_spi4()
@@ -289,7 +292,8 @@ class ch341_class(object):
         self.set_stream(1)
 
         for i in range(256):
-            self.rdbuffer[i] = self.iobuffer[i+4]
+            self.read_crc += int.from_bytes(
+                self.iobuffer[4 + i], byteorder='little')
 
     def connect_vtx(self):
         if self.dll.CH341OpenDevice(0) < 0:
@@ -317,7 +321,10 @@ class ch341_class(object):
         size = os.path.getsize(self.fw_path)
         file = open(self.fw_path, "rb")
         fw = file.read()
+
         page_number = (size + (1 << 8) - 1) >> 8
+        self.write_crc = 0
+        self.read_crc = 0
 
         for page in range(page_number):
             base_address = page << 8
@@ -325,8 +332,15 @@ class ch341_class(object):
             self.flash_write_page(base_address, 256, fw[base_address:])
             self.flash_write_disable()
             self.flash_wait_busy()
-
+            
+            self.flash_read_page(base_address, 256)
+            
             my_ch341.written_len += 256
+        
+        if self.write_crc == self.read_crc:
+            return 1
+        else:
+            return 0
 
     def connect_hybridviewer(self, sleep_sec):
         if self.dll.CH341OpenDevice(0) < 0:
@@ -529,8 +543,19 @@ def ch341_thread_proc():
             else:
                 my_ch341.flash_erase_vtx()
                 my_ch341.flash_write_target_id()
-                my_ch341.flash_write_fw()
-                my_ch341.status = ch341_status.VTX_UPDATEDONE.value
+                if my_ch341.flash_write_fw() == 1:
+                    my_ch341.status = ch341_status.VTX_UPDATEDONE.value
+                else:
+                    my_ch341.status = ch341_status.VTX_UPDATE_FAILED.value
+                my_ch341.reconnect_vtx = 0
+        elif my_ch341.status == ch341_status.VTX_RECONNECT.value:  # reconnect vtx
+            if my_ch341.reconnect_vtx == 0:
+                if my_ch341.connect_vtx() == 0:
+                    my_ch341.reconnect_vtx = 1
+            elif my_ch341.reconnect_vtx == 1:
+                if my_ch341.connect_vtx() == 1:
+                    my_ch341.reconnect_vtx = 0
+                    my_ch341.status = ch341_status.VTX_RECONNECTDONE.value
 
         # -------- HybridViewer -----------------
         elif my_ch341.status == ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value:  # check hybrid viewer is alive
@@ -572,8 +597,9 @@ def ch341_thread_proc():
             try:
                 file5680_size = int(head_size) - 2560
             except:
+                file5680_size = 65536
                 my_ch341.status = ch341_status.EVENT_VRX_FW_ERROR.value
-                
+
             file.close()
             if file_size > 10000000 or file5680_size >= 65536:
                 my_ch341.status = ch341_status.EVENT_VRX_FW_ERROR.value

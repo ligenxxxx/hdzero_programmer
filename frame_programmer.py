@@ -132,9 +132,15 @@ class frame_programmer:
 
     def update_button_disable(self):
         self.update_button["state"] = "disabled"
+        self.update_button["bg"] = "SystemButtonFace"
 
     def update_button_enable(self):
         self.update_button["state"] = "normal"
+        if self.update_button["text"] == "Cancel":
+            self.update_button["bg"] = "red"
+        else:
+            self.update_button["bg"] = "#06b025"
+            
     
     def update_button_set_text_cancel(self):
         self.is_cancel = 1
@@ -150,6 +156,6 @@ class frame_programmer:
             return path
         else:
             head, tail = os.path.split(path)
-            while len(head) + len(tail) + 4 > max_length:  # 4 表示保留的字符数，如 "...\"
+            while len(head) + len(tail) + 4 > max_length:
                 head = os.path.split(head)[0]
             return os.path.join(head, "..." + tail)

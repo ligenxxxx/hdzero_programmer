@@ -181,12 +181,13 @@ class MyGUI:
 
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_disable()
                 self._programmer_frame.local_fw_button_disable()
                 self._programmer_frame.online_fw_button_disable()
 
                 self._statusbar_frame.status_label_set_text(
-                    "Connecting VTX ...")
+                    "Connecting VTX ...", "SystemButtonFace")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
                 my_ch341.status = ch341_status.IDLE.value
@@ -197,6 +198,7 @@ class MyGUI:
                 self._vtx_frame.radio_button_enable()
 
                 self._programmer_frame.update_button_set_text_update("VTX")
+                self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.online_fw_button_enable(
@@ -216,13 +218,14 @@ class MyGUI:
 
                 self._hybrid_viewer_frame.setting_disable()
 
-                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_disable()
                 self._programmer_frame.local_fw_button_disable()
+                self._programmer_frame.online_fw_button_disable()
 
                 self._statusbar_frame.status_label_set_text(
-                    "Connecting Hybrid Viewer ...")
+                    "Connecting Hybrid Viewer ...", "SystemButtonFace")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
                 print("cancel hybrid viewer programmer")
@@ -236,8 +239,9 @@ class MyGUI:
 
                 self._hybrid_viewer_frame.setting_disable()
 
-                # self._programmer_frame.update_button_disable()
-                self._programmer_frame.update_button_set_text_update("Hybrid Viewer")
+                self._programmer_frame.update_button_set_text_update(
+                    "Hybrid Viewer")
+                self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
@@ -254,12 +258,13 @@ class MyGUI:
 
                 self.notebook_disable()
 
-                # self._programmer_frame.update_button_disable()
                 self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_disable()
                 self._programmer_frame.local_fw_button_disable()
+                self._programmer_frame.online_fw_button_disable()
                 self._statusbar_frame.status_label_set_text(
-                    "Connecting Event VRX ...")
+                    "Connecting Event VRX ...", "SystemButtonFace")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
                 my_download.to_stop = 1
@@ -267,8 +272,9 @@ class MyGUI:
 
                 self.notebook_enable()
 
-                # self._programmer_frame.update_button_disable()
-                self._programmer_frame.update_button_set_text_update("Event VRX")
+                self._programmer_frame.update_button_set_text_update(
+                    "Event VRX")
+                self._programmer_frame.update_button_disable()
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
@@ -277,6 +283,7 @@ class MyGUI:
 
                 self._statusbar_frame.label_hidden()
                 self._statusbar_frame.progress_bar_set_value(0)
+                
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -289,7 +296,7 @@ class MyGUI:
             self._programmer_frame.version_combobox_disable()
             # self._programmer_frame.local_fw_button_disable()
             self._programmer_frame.update_button_set_text_update("VTX")
-            # self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
             self.on_select_vtx_target()
@@ -303,8 +310,9 @@ class MyGUI:
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
-            self._programmer_frame.update_button_set_text_update("Hybrid Viewer")
-            # self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_set_text_update(
+                "Hybrid Viewer")
+            self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
             self.hybrid_viewer_is_alive = 0
             my_ch341.hybridviewer_connected = 0
@@ -318,7 +326,7 @@ class MyGUI:
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_set_text_update("Event VRX")
-            # self._programmer_frame.update_button_disable()
+            self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
 
             my_ch341.status = ch341_status.IDLE.value
@@ -431,7 +439,7 @@ class MyGUI:
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
-                self._statusbar_frame.status_label_set_text("Network error")
+                self._statusbar_frame.status_label_set_text("Firmware update failed. Network error.", "red")
 
             # update
             if my_ch341.status == ch341_status.VTX_CONNECTED.value:  # vtx is connected
@@ -441,7 +449,7 @@ class MyGUI:
                     my_download.save_path = "resource/FW"
                     my_download.status = download_status.DOWNLOAD_VTX_FW.value  # download url
                     self._statusbar_frame.status_label_set_text(
-                        "Downloading Firmware ...")
+                        "Downloading Firmware ...", "SystemButtonFace")
                 else:
                     selected_target = self._vtx_frame.vtx_target.get()
                     my_ch341.target_id = my_parse.vtx_info[selected_target]["id"]
@@ -456,6 +464,14 @@ class MyGUI:
                          my_ch341.to_write_len * 100) % 101
                 self._statusbar_frame.progress_bar_set_value(value)
             elif my_ch341.status == ch341_status.VTX_UPDATEDONE.value:  # vtx update done
+                self._statusbar_frame.progress_bar_set_value(100)
+                self._statusbar_frame.status_label_set_text(
+                    "Firmware updated. Connect another VTX(the save type) to update, or click cancel.", "#06b025")
+                my_ch341.status = ch341_status.VTX_RECONNECT.value
+                self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.update_button_enable()
+
+                """
                 my_ch341.status = ch341_status.IDLE.value
 
                 self.notebook_enable()
@@ -478,6 +494,32 @@ class MyGUI:
 
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._programmer_frame.deselect()
+                """
+            elif my_ch341.status == ch341_status.VTX_UPDATE_FAILED.value:  # vtx update failed
+                my_ch341.status = ch341_status.IDLE.value
+
+                self.notebook_enable()
+
+                self._vtx_frame.radio_button_enable()
+
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
+                self._programmer_frame.version_combobox_set_default()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.local_fw_button_set_str_default()
+                self._programmer_frame.update_button_set_text_update("VTX")
+                # self._programmer_frame.update_button_disable()
+                self._programmer_frame.deselect()
+
+                self._statusbar_frame.progress_bar_set_value(0)
+                self._statusbar_frame.status_label_set_text("Firmware update failed. Checksum error", "red")
+            elif my_ch341.status == ch341_status.VTX_RECONNECTDONE.value:
+                my_ch341.status = ch341_status.VTX_UPDATE.value
+                self._programmer_frame.update_button_set_text_update("VTX")
+                self._programmer_frame.update_button_disable()
+                self._statusbar_frame.label_hidden()
+
             elif my_ch341.status == ch341_status.VTX_FW_ERROR.value:  # vtx fw error
                 my_ch341.status = ch341_status.IDLE.value
 
@@ -496,7 +538,7 @@ class MyGUI:
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
-                self._statusbar_frame.status_label_set_text("FW Error ...")
+                self._statusbar_frame.status_label_set_text("Firmware update failed. Firmware error", "red")
 
         # ------------ HybridViewer ---------------
         if self.current_selected_tab() == 1:
@@ -508,7 +550,8 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
-                self._programmer_frame.update_button_set_text_update("Hybrid viewer")
+                self._programmer_frame.update_button_set_text_update(
+                    "Hybrid viewer")
                 self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value:
@@ -525,13 +568,14 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update("Hybrid viewer")
+                self._programmer_frame.update_button_set_text_update(
+                    "Hybrid viewer")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
-                    "Network error")
+                    "Firmware update failed. Network error.", "red")
 
             # update
             if self.is_update_hybrid_viewer == 1:
@@ -544,13 +588,14 @@ class MyGUI:
                         my_download.save_path = "resource/FW"
                         my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW.value  # download url
                         self._statusbar_frame.status_label_set_text(
-                            "Downloading Firmware ...")
+                            "Downloading Firmware ...", "SystemButtonFace")
                     else:
                         my_ch341.written_len = 0
                         my_ch341.to_write_len = os.path.getsize(
                             my_ch341.fw_path)
                         self._statusbar_frame.label_hidden()
-                        self._programmer_frame.update_button_set_text_update("Hybrid viewer")
+                        self._programmer_frame.update_button_set_text_update(
+                            "Hybrid viewer")
                         self._programmer_frame.update_button_disable()
                         my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
 
@@ -572,7 +617,8 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_set_text_update("Hybrid viewer")
+                    self._programmer_frame.update_button_set_text_update(
+                        "Hybrid viewer")
                     # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
@@ -591,13 +637,14 @@ class MyGUI:
                     self._programmer_frame.version_combobox_set_default()
                     self._programmer_frame.local_fw_button_enable()
                     self._programmer_frame.local_fw_button_set_str_default()
-                    self._programmer_frame.update_button_set_text_update("Hybrid viewer")
+                    self._programmer_frame.update_button_set_text_update(
+                        "Hybrid viewer")
                     # self._programmer_frame.update_button_disable()
                     self._programmer_frame.deselect()
 
                     self._statusbar_frame.progress_bar_set_value(0)
                     self._statusbar_frame.status_label_set_text(
-                        "FW Error")
+                        "Firmware udpate failed. Firmware error.", "red")
 
             elif my_ch341.status == ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value:
                 if self.hybrid_viewer_is_alive == 0 and my_ch341.hybridviewer_connected == 1:  # to connect hybird viewer
@@ -640,7 +687,8 @@ class MyGUI:
                 my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
 
                 self._statusbar_frame.label_hidden()
-                self._programmer_frame.update_button_set_text_update("Event VRX")
+                self._programmer_frame.update_button_set_text_update(
+                    "Event VRX")
                 self._programmer_frame.update_button_disable()
                 my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
             elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW_FAILED.value:
@@ -655,13 +703,14 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update("Event VRX")
+                self._programmer_frame.update_button_set_text_update(
+                    "Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
-                    "Network error")
+                    "Firmware update failed. Network error", "red")
 
             # update
             if my_ch341.status == ch341_status.EVENT_VRX_CONNECTED.value:  # event_vrx is connected
@@ -671,11 +720,12 @@ class MyGUI:
                     my_download.save_path = "resource/FW"
                     my_download.status = download_status.DOWNLOAD_EVENT_VRX_FW.value  # download url
                     self._statusbar_frame.status_label_set_text(
-                        "Downloading Firmware ...")
+                        "Downloading Firmware ...", "SystemButtonFace")
                 else:
                     my_ch341.written_len = 0
                     my_ch341.to_write_len = os.path.getsize(my_ch341.fw_path)
-                    self._programmer_frame.update_button_set_text_update("Event VRX")
+                    self._programmer_frame.update_button_set_text_update(
+                        "Event VRX")
                     self._programmer_frame.update_button_disable()
                     self._statusbar_frame.label_hidden()
                     my_ch341.status = ch341_status.EVENT_VRX_UPDATE.value
@@ -696,7 +746,8 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update("Event VRX")
+                self._programmer_frame.update_button_set_text_update(
+                    "Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -713,13 +764,14 @@ class MyGUI:
                 self._programmer_frame.version_combobox_set_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update("Event VRX")
+                self._programmer_frame.update_button_set_text_update(
+                    "Event VRX")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
-                    "FW Error")
+                    "Fiwamre update failed. Firmware error", "red")
 
         self._main_window.after(100, self.refresh)
 
