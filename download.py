@@ -3,6 +3,7 @@ import sys
 import time
 from global_var import *
 import os
+import zipfile
 
 
 class download:
@@ -61,8 +62,17 @@ def download_thread_proc():
 
     while True:
         if my_download.status == download_status.DOWNLOAD_VTX_FW.value:
-            ret = my_download.download_file(my_download.url, my_download.save_path, 1)
+            ret = my_download.download_file(my_download.url, my_download.save_path+".zip", 1)
             if  ret == 1:
+                # unzip file
+                with zipfile.ZipFile( my_download.save_path+".zip", 'r') as zip_ref:
+                    zip_ref.extractall("resource/")
+                    
+                # rename file
+                if(os.path.exists(my_download.save_path)):
+                    os.remove(my_download.save_path)
+                os.rename("resource/HDZERO_TX.bin", my_download.save_path)
+                
                 my_download.status = download_status.DOWNLOAD_VTX_FW_DONE.value
             elif ret == 2: # stop
                 my_download.status = download_status.IDLE.value
