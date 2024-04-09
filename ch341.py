@@ -80,7 +80,7 @@ class ch341_class(object):
         try:
             self.dll = ctypes.WinDLL(self.dll_name)
         except:
-            command = "driver\SETUP.EXE \S"
+            command = "resource\driver\SETUP.EXE \S"
             print("Need to install ch341 driver")
             print("Installing ...")
             subprocess.run(command, shell=True, capture_output=True, text=True)
