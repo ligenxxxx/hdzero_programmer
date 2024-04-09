@@ -466,7 +466,7 @@ class MyGUI:
             elif my_ch341.status == ch341_status.VTX_UPDATEDONE.value:  # vtx update done
                 self._statusbar_frame.progress_bar_set_value(100)
                 self._statusbar_frame.status_label_set_text(
-                    "Firmware updated. Connect another VTX(the save type) to update, or click cancel.", "#06b025")
+                    "Firmware updated. Connect another VTX(the same type) to update, or click cancel to finish.", "#06b025")
                 my_ch341.status = ch341_status.VTX_RECONNECT.value
                 self._programmer_frame.update_button_set_text_cancel()
                 self._programmer_frame.update_button_enable()
@@ -496,24 +496,13 @@ class MyGUI:
                 self._programmer_frame.deselect()
                 """
             elif my_ch341.status == ch341_status.VTX_UPDATE_FAILED.value:  # vtx update failed
-                my_ch341.status = ch341_status.IDLE.value
-
-                self.notebook_enable()
-
-                self._vtx_frame.radio_button_enable()
-
-                self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(
-                    self.network_error)
-                self._programmer_frame.version_combobox_set_default()
-                self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.local_fw_button_set_str_default()
-                self._programmer_frame.update_button_set_text_update("VTX")
-                # self._programmer_frame.update_button_disable()
-                self._programmer_frame.deselect()
-
                 self._statusbar_frame.progress_bar_set_value(0)
-                self._statusbar_frame.status_label_set_text("Firmware update failed. Checksum error", "red")
+                self._statusbar_frame.status_label_set_text(
+                    "Firmware updated failed. Disconnect/reconnect the vtx to try again, or click cancel to finish.", "red")
+                my_ch341.status = ch341_status.VTX_RECONNECT.value
+                self._programmer_frame.update_button_set_text_cancel()
+                self._programmer_frame.update_button_enable()
+                
             elif my_ch341.status == ch341_status.VTX_RECONNECTDONE.value:
                 my_ch341.status = ch341_status.VTX_UPDATE.value
                 self._programmer_frame.update_button_set_text_update("VTX")
