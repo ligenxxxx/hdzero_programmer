@@ -618,16 +618,13 @@ class MyGUI:
 
                     self.notebook_enable()
 
-                    self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(
-                        self.network_error)
-                    self._programmer_frame.version_combobox_set_default()
-                    self._programmer_frame.local_fw_button_enable()
-                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_set_text_update(
                         "Hybrid viewer")
-                    # self._programmer_frame.update_button_disable()
-                    self._programmer_frame.deselect()
+                    self._programmer_frame.update_button_enable()
+                    self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
 
                     self._statusbar_frame.progress_bar_set_value(0)
                     self._statusbar_frame.status_label_set_text(
@@ -727,34 +724,30 @@ class MyGUI:
 
                 self.notebook_enable()
 
-                self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(
-                    self.network_error)
-                self._programmer_frame.version_combobox_set_default()
-                self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_set_text_update(
                     "Event VRX")
-                # self._programmer_frame.update_button_disable()
-                self._programmer_frame.deselect()
+                self._programmer_frame.update_button_enable()
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
 
                 self._statusbar_frame.progress_bar_set_value(100)
+                self._statusbar_frame.status_label_set_text(
+                    "Firmware updated.", "#06b025")
 
             elif my_ch341.status == ch341_status.EVENT_VRX_FW_ERROR.value:
                 my_ch341.status = ch341_status.IDLE.value
 
                 self.notebook_enable()
 
-                self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.online_fw_button_enable(
-                    self.network_error)
-                self._programmer_frame.version_combobox_set_default()
-                self._programmer_frame.local_fw_button_enable()
-                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_set_text_update(
                     "Event VRX")
-                # self._programmer_frame.update_button_disable()
-                self._programmer_frame.deselect()
+                self._programmer_frame.update_button_enable()
+                self._programmer_frame.version_combobox_enable()
+                self._programmer_frame.local_fw_button_enable()
+                self._programmer_frame.online_fw_button_enable(
+                    self.network_error)
 
                 self._statusbar_frame.progress_bar_set_value(0)
                 self._statusbar_frame.status_label_set_text(
