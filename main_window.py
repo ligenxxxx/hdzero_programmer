@@ -243,7 +243,6 @@ class MyGUI:
                     "Hybrid Viewer")
                 self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.online_fw_button_enable(
                     self.network_error)
@@ -276,14 +275,12 @@ class MyGUI:
                     "Event VRX")
                 self._programmer_frame.update_button_disable()
                 self._programmer_frame.version_combobox_enable()
-                self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.online_fw_button_enable(
                     self.network_error)
 
                 self._statusbar_frame.label_hidden()
                 self._statusbar_frame.progress_bar_set_value(0)
-                
 
     def on_tab_changed(self, event):
         print("Selected tab:", self.current_selected_tab())
@@ -439,7 +436,8 @@ class MyGUI:
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
-                self._statusbar_frame.status_label_set_text("Firmware update failed. Network error.", "red")
+                self._statusbar_frame.status_label_set_text(
+                    "Firmware update failed. Network error.", "red")
 
             # update
             if my_ch341.status == ch341_status.VTX_CONNECTED.value:  # vtx is connected
@@ -502,7 +500,7 @@ class MyGUI:
                 my_ch341.status = ch341_status.VTX_RECONNECT.value
                 self._programmer_frame.update_button_set_text_cancel()
                 self._programmer_frame.update_button_enable()
-                
+
             elif my_ch341.status == ch341_status.VTX_RECONNECTDONE.value:
                 my_ch341.status = ch341_status.VTX_UPDATE.value
                 self._programmer_frame.update_button_set_text_update("VTX")
@@ -527,7 +525,8 @@ class MyGUI:
                 self._programmer_frame.deselect()
 
                 self._statusbar_frame.progress_bar_set_value(0)
-                self._statusbar_frame.status_label_set_text("Firmware update failed. Firmware error", "red")
+                self._statusbar_frame.status_label_set_text(
+                    "Firmware update failed. Firmware error", "red")
 
         # ------------ HybridViewer ---------------
         if self.current_selected_tab() == 1:
@@ -600,18 +599,17 @@ class MyGUI:
 
                     self.notebook_enable()
 
-                    self._programmer_frame.version_combobox_enable()
-                    self._programmer_frame.online_fw_button_enable(
-                        self.network_error)
-                    self._programmer_frame.version_combobox_set_default()
-                    self._programmer_frame.local_fw_button_enable()
-                    self._programmer_frame.local_fw_button_set_str_default()
                     self._programmer_frame.update_button_set_text_update(
                         "Hybrid viewer")
-                    # self._programmer_frame.update_button_disable()
-                    self._programmer_frame.deselect()
+                    self._programmer_frame.update_button_enable()
+                    self._programmer_frame.version_combobox_enable()
+                    self._programmer_frame.local_fw_button_enable()
+                    self._programmer_frame.online_fw_button_enable(
+                        self.network_error)
 
                     self._statusbar_frame.progress_bar_set_value(100)
+                    self._statusbar_frame.status_label_set_text(
+                        "Firmware updated.", "#06b025")
 
                 elif my_ch341.status == ch341_status.HYBRIDVIEWER_FW_ERROR.value:  # fw error
                     self.is_update_hybrid_viewer = 0
