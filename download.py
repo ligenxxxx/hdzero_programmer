@@ -56,7 +56,7 @@ def download_thread_proc():
     ret2 = my_download.download_file(
         "https://api.github.com/repos/ligenxxxx/event-vrx/releases", "resource/event_vrx_releases", 1)
     ret3 = my_download.download_file(
-        "https://api.github.com/repos/ligenxxxx/hv/releases", "resource/hybrid_viewer_releases", 1)
+        "https://api.github.com/repos/ligenxxxx/hv/releases", "resource/monitor_releases", 1)
     time.sleep(1)
     my_download.status = download_status.FILE_PARSE.value
 
@@ -79,14 +79,14 @@ def download_thread_proc():
             else:
                 my_download.status = download_status.DOWNLOAD_VTX_FW_FAILED.value
 
-        elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW.value:
+        elif my_download.status == download_status.DOWNLOAD_MONITOR_FW.value:
             ret = my_download.download_file(my_download.url, my_download.save_path, 1)
             if  ret == 1:
-                my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW_DONE.value
+                my_download.status = download_status.DOWNLOAD_MONITOR_FW_DONE.value
             elif ret == 2: # stop
                 my_download.status = download_status.IDLE.value
             else:
-                my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value
+                my_download.status = download_status.DOWNLOAD_MONITOR_FW_FAILED.value
 
         elif my_download.status == download_status.DOWNLOAD_EVENT_VRX_FW.value:
             ret = my_download.download_file(my_download.url, my_download.save_path, 1)

@@ -4,7 +4,7 @@ dist
 vtx_common
 vtx_releases
 event_vrx_releases
-hybrid_viewer_releases
+monitor_releases
 FW
-HYBRID_VIEWER.bin
+MONITOR.bin
 .spec

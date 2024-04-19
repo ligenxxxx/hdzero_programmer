@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from frame_vtx import frame_vtx
-from frame_hybrid_viewer import frame_hybrid_viewer
+from frame_monitor import frame_monitor
 from frame_event_vrx import frame_event_vrx
 from frame_programmer import frame_programmer
 from frame_statusbar import frame_statusbar
@@ -41,8 +41,8 @@ class MyGUI:
         self.init_statusbar()
         self._statusbar_frame.frame().grid(row=2, column=0, sticky="nsew")
 
-        self.is_update_hybrid_viewer = 0
-        self.hybrid_viewer_is_alive = 0
+        self.is_update_monitor = 0
+        self.monitor_is_alive = 0
 
         self.downloading_window_status = 0
         self.network_error = 0
@@ -68,7 +68,7 @@ class MyGUI:
         self._tabCtrl = ttk.Notebook(self._main_window)
         self.init_main_window()
         self.init_vtx_frame()
-        self.init_hybrid_viewer_frame()
+        self.init_monitor_frame()
         self.init_event_vrx_frame()
         self._tabCtrl.select(self._vtx_frame.frame())
         self._tabCtrl.grid(row=0, column=0, sticky="nsew")
@@ -95,8 +95,8 @@ class MyGUI:
             self._vtx_frame.radio_button[i].bind(
                 "<Button-1>", self.on_select_vtx_target)
 
-    def init_hybrid_viewer_frame(self):
-        self._hybrid_viewer_frame = frame_hybrid_viewer(self._tabCtrl)
+    def init_monitor_frame(self):
+        self._monitor_frame = frame_monitor(self._tabCtrl)
 
     def init_event_vrx_frame(self):
         self._event_vrx_frame = frame_event_vrx(self._tabCtrl)
@@ -135,7 +135,7 @@ class MyGUI:
                 self._programmer_frame.version_combobox.get())
         elif self.current_selected_tab() == 1:
             self._programmer_frame.update_button_enable()
-            self._programmer_frame.url = my_parse.hybrid_viewer_info[self._programmer_frame.version_combobox.get(
+            self._programmer_frame.url = my_parse.monitor_info[self._programmer_frame.version_combobox.get(
             )]
             self._programmer_frame.online_fw_button_set_str(
                 self._programmer_frame.version_combobox.get())
@@ -209,14 +209,14 @@ class MyGUI:
 
         elif self.current_selected_tab() == 1:
             if self._programmer_frame.is_cancel == 0:
-                self.is_update_hybrid_viewer = 1
-                my_ch341.hybridviewer_connected = 0
+                self.is_update_monitor = 1
+                my_ch341.monitor_connected = 0
                 my_ch341.status = ch341_status.IDLE.value
                 my_download.to_stop = 0
 
                 self.notebook_disable()
 
-                self._hybrid_viewer_frame.setting_disable()
+                self._monitor_frame.setting_disable()
 
                 self._programmer_frame.update_button_set_text_cancel()
                 self._programmer_frame.update_button_enable()
@@ -225,22 +225,22 @@ class MyGUI:
                 self._programmer_frame.online_fw_button_disable()
 
                 self._statusbar_frame.status_label_set_text(
-                    "Connecting Hybrid Viewer ...", "SystemButtonFace")
+                    "Connecting Monitor ...", "SystemButtonFace")
                 self._statusbar_frame.progress_bar_set_value(0)
             else:
-                print("cancel hybrid viewer programmer")
-                self.is_update_hybrid_viewer = 0
-                my_ch341.hybridviewer_connected = 0
-                self.hybrid_viewer_is_alive = 0
+                print("cancel Monitor programmer")
+                self.is_update_monitor = 0
+                my_ch341.monitor_connected = 0
+                self.monitor_is_alive = 0
                 my_ch341.status = ch341_status.IDLE.value
                 my_download.to_stop = 1
 
                 self.notebook_enable()
 
-                self._hybrid_viewer_frame.setting_disable()
+                self._monitor_frame.setting_disable()
 
                 self._programmer_frame.update_button_set_text_update(
-                    "Hybrid Viewer")
+                    "Monitor")
                 self._programmer_frame.update_button_enable()
                 self._programmer_frame.version_combobox_enable()
                 self._programmer_frame.local_fw_button_enable()
@@ -300,22 +300,22 @@ class MyGUI:
             my_ch341.status = ch341_status.IDLE.value
 
         elif self.current_selected_tab() == 1:
-            self._hybrid_viewer_frame.setting_disable()
+            self._monitor_frame.setting_disable()
 
-            version_list = list(my_parse.hybrid_viewer_info.keys())
+            version_list = list(my_parse.monitor_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
             self._programmer_frame.version_combobox_set_default()
             self._programmer_frame.version_combobox_enable()
             self._programmer_frame.local_fw_button_enable()
             self._programmer_frame.update_button_set_text_update(
-                "Hybrid Viewer")
+                "Monitor")
             self._programmer_frame.update_button_disable()
             self._programmer_frame.online_fw_button_show()
-            self.hybrid_viewer_is_alive = 0
-            my_ch341.hybridviewer_connected = 0
+            self.monitor_is_alive = 0
+            my_ch341.monitor_connected = 0
 
-            # to connect Hybrid Viewer
-            my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
+            # to connect Monitor
+            my_ch341.status = ch341_status.MONITOR_CHECK_ALIVE.value
         elif self.current_selected_tab() == 2:
             version_list = list(my_parse.event_vrx_info.keys())
             self._programmer_frame.version_combobox_update_values(version_list)
@@ -378,7 +378,7 @@ class MyGUI:
         -   write vtx id & fw to flash
         -   wait until write done
 
-        2. update hybrid viewer
+        2. update Monitor
         -
         -
         3. update event vrx
@@ -390,7 +390,7 @@ class MyGUI:
             my_parse.parse_vtx_common()
             ret0 = my_parse.parse_vtx_releases()
             ret1 = my_parse.parse_event_vrx_releases()
-            ret2 = my_parse.parse_hybrid_viewer_releases()
+            ret2 = my_parse.parse_monitor_releases()
             ret3 = my_parse.parse_vtx_tragets_image(
                 len(list(my_parse.vtx_info.keys())))
 
@@ -528,10 +528,10 @@ class MyGUI:
                 self._statusbar_frame.status_label_set_text(
                     "Firmware update failed. Firmware error", "red")
 
-        # ------------ HybridViewer ---------------
+        # ------------ Monitor ---------------
         if self.current_selected_tab() == 1:
             # download
-            if my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_DONE.value:
+            if my_download.status == download_status.DOWNLOAD_MONITOR_FW_DONE.value:
                 my_download.status = download_status.IDLE.value
                 my_ch341.fw_path = my_download.save_path
                 my_ch341.written_len = 0
@@ -539,14 +539,14 @@ class MyGUI:
 
                 self._statusbar_frame.label_hidden()
                 self._programmer_frame.update_button_set_text_update(
-                    "Hybrid viewer")
+                    "Monitor")
                 self._programmer_frame.update_button_disable()
-                my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
-            elif my_download.status == download_status.DOWNLOAD_HYBRID_VIEWER_FW_FAILED.value:
+                my_ch341.status = ch341_status.MONITOR_UPDATE.value
+            elif my_download.status == download_status.DOWNLOAD_MONITOR_FW_FAILED.value:
                 my_download.status = download_status.IDLE.value
-                self.is_update_hybrid_viewer = 0
-                my_ch341.hybridviewer_connected = 0
-                my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
+                self.is_update_monitor = 0
+                my_ch341.monitor_connected = 0
+                my_ch341.status = ch341_status.MONITOR_CHECK_ALIVE.value
 
                 self.notebook_enable()
 
@@ -557,7 +557,7 @@ class MyGUI:
                 self._programmer_frame.local_fw_button_enable()
                 self._programmer_frame.local_fw_button_set_str_default()
                 self._programmer_frame.update_button_set_text_update(
-                    "Hybrid viewer")
+                    "Monitor")
                 # self._programmer_frame.update_button_disable()
                 self._programmer_frame.deselect()
 
@@ -566,15 +566,15 @@ class MyGUI:
                     "Firmware update failed. Network error.", "red")
 
             # update
-            if self.is_update_hybrid_viewer == 1:
-                if my_ch341.status == ch341_status.IDLE.value and my_ch341.hybridviewer_connected == 0:  # to connect hybrid viewer
-                    my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
-                elif my_ch341.status == ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value and my_ch341.hybridviewer_connected == 1:  # hybrid viewer is connected
+            if self.is_update_monitor == 1:
+                if my_ch341.status == ch341_status.IDLE.value and my_ch341.monitor_connected == 0:  # to connect Monitor
+                    my_ch341.status = ch341_status.MONITOR_CHECK_ALIVE.value
+                elif my_ch341.status == ch341_status.MONITOR_CHECK_ALIVE.value and my_ch341.monitor_connected == 1:  # Monitor is connected
                     my_ch341.status = ch341_status.IDLE.value
                     if self._programmer_frame.mode == 0:
                         my_download.url = self._programmer_frame.url
                         my_download.save_path = "resource/FW"
-                        my_download.status = download_status.DOWNLOAD_HYBRID_VIEWER_FW.value  # download url
+                        my_download.status = download_status.DOWNLOAD_MONITOR_FW.value  # download url
                         self._statusbar_frame.status_label_set_text(
                             "Downloading Firmware ...", "SystemButtonFace")
                     else:
@@ -583,24 +583,24 @@ class MyGUI:
                             my_ch341.fw_path)
                         self._statusbar_frame.label_hidden()
                         self._programmer_frame.update_button_set_text_update(
-                            "Hybrid viewer")
+                            "Monitor")
                         self._programmer_frame.update_button_disable()
-                        my_ch341.status = ch341_status.HYBRIDVIEWER_UPDATE.value
+                        my_ch341.status = ch341_status.MONITOR_UPDATE.value
 
-                elif my_ch341.status == ch341_status.HYBRIDVIEWER_UPDATE.value:  # refresh progress bar
+                elif my_ch341.status == ch341_status.MONITOR_UPDATE.value:  # refresh progress bar
                     value = (my_ch341.written_len /
                              my_ch341.to_write_len * 100) % 101
                     self._statusbar_frame.progress_bar_set_value(value)
 
-                elif my_ch341.status == ch341_status.HYBRIDVIEWER_UPDATEDONE.value:  # HybridViewer update done
-                    self.is_update_hybrid_viewer = 0
-                    my_ch341.hybridviewer_connected = 0
-                    my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
+                elif my_ch341.status == ch341_status.MONITOR_UPDATEDONE.value:  # Monitor update done
+                    self.is_update_monitor = 0
+                    my_ch341.monitor_connected = 0
+                    my_ch341.status = ch341_status.MONITOR_CHECK_ALIVE.value
 
                     self.notebook_enable()
 
                     self._programmer_frame.update_button_set_text_update(
-                        "Hybrid viewer")
+                        "Monitor")
                     self._programmer_frame.update_button_enable()
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.local_fw_button_enable()
@@ -611,15 +611,15 @@ class MyGUI:
                     self._statusbar_frame.status_label_set_text(
                         "Firmware updated.", "#06b025")
 
-                elif my_ch341.status == ch341_status.HYBRIDVIEWER_FW_ERROR.value:  # fw error
-                    self.is_update_hybrid_viewer = 0
-                    my_ch341.hybridviewer_connected = 0
-                    my_ch341.status = ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value
+                elif my_ch341.status == ch341_status.MONITOR_FW_ERROR.value:  # fw error
+                    self.is_update_monitor = 0
+                    my_ch341.monitor_connected = 0
+                    my_ch341.status = ch341_status.MONITOR_CHECK_ALIVE.value
 
                     self.notebook_enable()
 
                     self._programmer_frame.update_button_set_text_update(
-                        "Hybrid viewer")
+                        "Monitor")
                     self._programmer_frame.update_button_enable()
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.local_fw_button_enable()
@@ -630,9 +630,9 @@ class MyGUI:
                     self._statusbar_frame.status_label_set_text(
                         "Firmware udpate failed. Firmware error.", "red")
 
-            elif my_ch341.status == ch341_status.HYBRIDVIEWER_CHECK_ALIVE.value:
-                if self.hybrid_viewer_is_alive == 0 and my_ch341.hybridviewer_connected == 1:  # to connect hybird viewer
-                    self._hybrid_viewer_frame.setting_enable()
+            elif my_ch341.status == ch341_status.MONITOR_CHECK_ALIVE.value:
+                if self.monitor_is_alive == 0 and my_ch341.monitor_connected == 1:  # to connect monitor
+                    self._monitor_frame.setting_enable()
 
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.online_fw_button_enable(
@@ -641,14 +641,14 @@ class MyGUI:
                     self._programmer_frame.local_fw_button_set_str_default()
                     # self._programmer_frame.update_button_disable()
 
-                    self._hybrid_viewer_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
+                    self._monitor_frame.write_setting(global_var.brightness, global_var.contrast, global_var.saturation,
                                                             global_var.backlight, global_var.cell_count, global_var.warning_cell_voltage)
-                    self.hybrid_viewer_is_alive = 1
-                elif self.hybrid_viewer_is_alive == 1 and my_ch341.hybridviewer_connected == 0:  # to disconnect hybird viewer
-                    self.hybrid_viewer_is_alive = 0
+                    self.monitor_is_alive = 1
+                elif self.monitor_is_alive == 1 and my_ch341.monitor_connected == 0:  # to disconnect monitor
+                    self.monitor_is_alive = 0
 
-                    self._hybrid_viewer_frame.reset_scale()
-                    self._hybrid_viewer_frame.setting_disable()
+                    self._monitor_frame.reset_scale()
+                    self._monitor_frame.setting_disable()
 
                     self._programmer_frame.version_combobox_enable()
                     self._programmer_frame.online_fw_button_enable(
@@ -657,9 +657,9 @@ class MyGUI:
                     self._programmer_frame.local_fw_button_set_str_default()
                     # self._programmer_frame.update_button_disable()
 
-                elif self.hybrid_viewer_is_alive == 1 and my_ch341.hybridviewer_connected == 1:  # hybird viewer is alive
+                elif self.monitor_is_alive == 1 and my_ch341.monitor_connected == 1:  # monitor is alive
                     # settting
-                    self._hybrid_viewer_frame.usb_heart()
+                    self._monitor_frame.usb_heart()
 
         # --------------------- event_vrx -------------------------------
         if self.current_selected_tab() == 2:
