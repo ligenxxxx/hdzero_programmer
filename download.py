@@ -45,18 +45,17 @@ my_download = download()
 
 
 def download_thread_proc():
-    ret0 = 0
-    ret1 = 0
-    ret2 = 0
-    ret3 = 0
-    ret0 = my_download.download_file(
+    my_download.download_file(
         "https://api.github.com/repos/hd-zero/hdzero-vtx/releases", "resource/vtx_releases", 1)
-    ret1 = my_download.download_file(
+    my_download.download_file(
         "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/src/common.h", "resource/vtx_common", 0)
-    ret2 = my_download.download_file(
+    my_download.download_file(
+        "https://raw.githubusercontent.com/hd-zero/hdzero-vtx/main/vtx_targets.png", "resource/vtx_targets.png", 0)
+    my_download.download_file(
         "https://api.github.com/repos/ligenxxxx/event-vrx/releases", "resource/event_vrx_releases", 1)
-    ret3 = my_download.download_file(
+    my_download.download_file(
         "https://api.github.com/repos/ligenxxxx/hv/releases", "resource/monitor_releases", 1)
+
     time.sleep(1)
     my_download.status = download_status.FILE_PARSE.value
 
