@@ -19,5 +19,5 @@ class frame_event_vrx:
         image = Image.open(self.image_path)
         photo = ImageTk.PhotoImage(image)
         label = ttk.Label(self._frame, image=photo)
-        label.image=photo
+        label.image = photo
         label.pack()

@@ -6,6 +6,7 @@ from main_window import ui_thread_proc
 from download import download_thread_proc
 from ch341 import ch341_thread_proc
 
+
 def get_resource_folder():
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
@@ -14,13 +15,14 @@ def get_resource_folder():
 
     resource_folder = os.path.join(base_path, "data_folder")
     print(resource_folder)
-    
+
     return resource_folder
-    
+
+
 def check_and_release_resource():
-    
+
     resource_folder = get_resource_folder()
-    
+
     if os.path.exists("resource"):
         pass
     else:
@@ -31,6 +33,7 @@ def check_and_release_resource():
                 shutil.copy(source_file, destination_file)
             elif os.path.isdir(source_file):
                 shutil.copytree(source_file, destination_file)
+
 
 def main():
     check_and_release_resource()
@@ -43,6 +46,7 @@ def main():
 
     ch341_thread = threading.Thread(target=ch341_thread_proc, name="ch341")
     ch341_thread.start()
+
 
 if __name__ == '__main__':
     main()

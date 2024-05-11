@@ -21,28 +21,29 @@ class frame_programmer:
         self.local_file_path = ""
         self.local_file_path_shorten = ""
         self.url = ""
-        
+
         self.is_cancel = 0
-        
+
         self.is_load_online = tk.StringVar()
 
         self.version_combobox = ttk.Combobox(
             self._frame, values=self.online_list, state="readonly")
         self.version_combobox_set_default()
         self.version_combobox_disable()
-        
-        self.online_fw_button = ttk.Radiobutton(self._frame, text="Load Online Firmware", variable=self.is_load_online, value='1')
+
+        self.online_fw_button = ttk.Radiobutton(
+            self._frame, text="Load Online Firmware", variable=self.is_load_online, value='1')
         self.online_fw_button_show()
         self.online_fw_button_disable()
 
-
-        self.local_fw_button = ttk.Radiobutton(self._frame, text="Load Local Firmware", variable=self.is_load_online, value='0')
+        self.local_fw_button = ttk.Radiobutton(
+            self._frame, text="Load Local Firmware", variable=self.is_load_online, value='0')
         self.local_fw_button.grid(row=1, column=1, padx=5, pady=5)
         self.local_fw_button_disable()
 
         self.update_button = tk.Button(self._frame)
         self.update_button.grid(row=1, column=2, padx=5, pady=5)
-        
+
         self.update_button_set_text_update("VTX")
         self.update_button_disable()
 
@@ -70,21 +71,21 @@ class frame_programmer:
             self.online_fw_button_disable()
         else:
             self.online_fw_button.config(state="normal")
-    
+
     def online_fw_button_show(self):
         self.online_fw_button.grid(row=1, column=0, padx=5, pady=5)
         self.version_combobox.grid_remove()
-    
+
     def online_fw_button_hidden(self):
         self.version_combobox.grid(
             row=1, column=0, padx=5, pady=5)
         self.version_combobox.event_generate('<Button-1>')
         self.online_fw_button.grid_remove()
         self.local_fw_button_set_str_default()
-    
+
     def online_fw_button_set_str(self, str):
         self.online_fw_button['text'] = str
-        
+
     def online_fw_button_set_str_default(self):
         self.online_fw_button['text'] = "Load Online Firmware"
 
@@ -93,13 +94,13 @@ class frame_programmer:
 
     def local_fw_button_enable(self):
         self.local_fw_button.config(state="normal")
-        
+
     def local_fw_button_set_str(self, str):
         self.local_fw_button["text"] = str
-        
+
     def local_fw_button_set_str_default(self):
         self.local_fw_button["text"] = "Load Local Firmware"
-    
+
     def deselect(self):
         self.is_load_online.set("")
 
@@ -107,14 +108,14 @@ class frame_programmer:
         self.version_combobox_set_default()
         self.online_fw_button_set_str_default()
         filetypes = (("Bin files", "*.bin"), ("All files", "*.*"))
-        
+
         try:
             with open("resource/local_path", "r") as file:
                 path = file.read()
                 file.close()
         except:
             path = "."
-            
+
         try:
             self.local_file_path = filedialog.askopenfilename(
                 initialdir=path, title="select a firmware", filetypes=filetypes)
@@ -123,7 +124,8 @@ class frame_programmer:
 
         if self.local_file_path:
             self.mode = 1
-            self.local_file_path_shorten = self.shorten_path(self.local_file_path)
+            self.local_file_path_shorten = self.shorten_path(
+                self.local_file_path)
             self.local_fw_button_set_str(self.local_file_path_shorten)
             path = self.local_file_path[:self.local_file_path.rfind('/') + 1]
             with open("resource/local_path", "w") as file:
@@ -140,17 +142,15 @@ class frame_programmer:
             self.update_button["bg"] = "red"
         else:
             self.update_button["bg"] = "#06b025"
-            
-    
+
     def update_button_set_text_cancel(self):
         self.is_cancel = 1
         self.update_button["text"] = "Cancel"
-        
+
     def update_button_set_text_update(self, string):
         self.is_cancel = 0
         self.update_button["text"] = "Flash " + string
-        
-    
+
     def shorten_path(self, path, max_length=40):
         if len(path) <= max_length:
             return path

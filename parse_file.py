@@ -13,7 +13,7 @@ class parse:
         self.vtx_info = {}
         self.event_vrx_info = {}
         self.monitor_info = {}
-        self.vtx_target_image=[]
+        self.vtx_target_image = []
 
     def parse_vtx_common(self):
         try:
@@ -106,13 +106,15 @@ class parse:
             ori_img = Image.open(self.vtx_tragets_image_path)
         except:
             return 0
-        
+
         for i in range(0, num):
             try:
-                self.vtx_target_image.append(ori_img.crop((0, i*100, 299, i*100+99)))
+                self.vtx_target_image.append(
+                    ori_img.crop((0, i*100, 299, i*100+99)))
             except:
                 return 0
 
         return 1
+
 
 my_parse = parse()
